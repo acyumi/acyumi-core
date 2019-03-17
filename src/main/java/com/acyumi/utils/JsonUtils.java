@@ -1,13 +1,19 @@
 package com.acyumi.utils;
 
+import com.acyumi.annotation.JsonIgnoreSpecially;
 import com.acyumi.configuration.converter.MsgDateDeserializer;
+import com.acyumi.helper.TransMap;
+import com.acyumi.reflect.Reflector;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.ser.*;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapLikeType;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -17,7 +23,6 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import org.springframework.util.StringUtils;
-import org.springframework.util.TypeUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -26,7 +31,7 @@ import java.time.LocalTime;
 import java.util.*;
 
 /**
- * Json工具类
+ * Json工具类.
  * 使用的是jackson的ObjectMapper进行对象与json字符串之间的序列化与反序列化
  *
  * @author Mr.XiHui
@@ -36,15 +41,32 @@ import java.util.*;
 public class JsonUtils {
 
     /**
-     * jackson序列化与反序列化json的重量级对象
+     * 为使{@link #toJsonIgnoreSpeciallyStr(Object)}方法通过注解{@link JsonIgnoreSpecially}
+     * 过滤属性而定义的Bean序列化修改器
+     *
+     * @see JsonIgnoreSpeciallyBeanSerializerModifier
+     */
+    private static final BeanSerializerModifier IGNORE_SPECIALLY_BEAN_SERIALIZER_MODIFIER;
+
+    /**
+     * jackson序列化与反序列化json的重量级对象.
      */
     //private static ObjectMapper OBJECT_MAPPER = new MsgObjectMapper();
     private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
+
+        IGNORE_SPECIALLY_BEAN_SERIALIZER_MODIFIER = new JsonIgnoreSpeciallyBeanSerializerModifier();
+
         //全部字段序列化
         //对象的所有字段全部列入
         OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+
+        //反序列化时属性名称是否要求带双引号，默认为true
+        //OBJECT_MAPPER.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
+
+        //反序列化时是否允许属性名称不带双引号
+        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 
         //忽略空Bean转json的错误
         OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -72,7 +94,7 @@ public class JsonUtils {
                 new LocalDateTimeDeserializer(DateTimeUtils.DEFAULT_DATE_TIME_FORMATTER));
 
         //设置Date使用动态格式的字符串反序列化成对象
-        module.addDeserializer(Date.class, new MsgDateDeserializer());
+        module.addDeserializer(java.util.Date.class, new MsgDateDeserializer());
 
         /*MsgDateDeserializer即此内部类，在此备份一下
         module.addDeserializer(java.util.Date.class, new DateDeserializers.DateDeserializer() {
@@ -131,21 +153,8 @@ public class JsonUtils {
      * @return 未格式化的Json字符串
      */
     public static String toJsonStr(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        try {
-            if (obj instanceof String) {
-                try {
-                    //如果obj本身是字符串，先转一次成对象(Map或List或String)
-                    //这么做可以去掉字符串中的回车等空白字符串
-                    obj = OBJECT_MAPPER.readValue((String) obj, Object.class);
-                } catch (IOException e) {/*ignore*/}
-            }
-            return OBJECT_MAPPER.writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("序列化对象成Json字符串失败", e);
-        }
+
+        return toJsonStr(obj, false, null, false);
     }
 
     /**
@@ -171,21 +180,44 @@ public class JsonUtils {
      * @return 格式化好的Json字符串
      */
     public static String toPrettyJsonStr(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        try {
-            if (obj instanceof String) {
-                try {
-                    //如果obj本身是字符串，先转一次成对象(Map或List)
-                    //这么做可以去掉字符串中的回车等空白字符串
-                    obj = OBJECT_MAPPER.readValue((String) obj, Object.class);
-                } catch (IOException e) {/*ignore*/}
-            }
-            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("序列化对象成格式化好的Json字符串失败", e);
-        }
+
+        return toJsonStr(obj, false, null, true);
+    }
+
+    /**
+     * 序列化对象成通过@JsonIgnoreSpecially注解过滤过属性的Json字符串.
+     * <br>
+     * 通过在对象的成员变量上声明注解{@link JsonIgnoreSpecially}
+     * 再调用此方法以在不影响 “框架” 和 {@link #toJsonStr(Object)} 的基础上
+     * 达到输出过滤了指定属性的Json字符串的效果
+     *
+     * @param obj 对象
+     * @return 未格式化的Json字符串
+     * @see JsonIgnoreSpecially
+     */
+    public static String toJsonIgnoreSpeciallyStr(Object obj) {
+
+        return toJsonStr(obj, true, null, false);
+    }
+
+    /**
+     * 指定要过滤的属性序列化对象成Json字符串.
+     *
+     * @param obj              对象
+     * @param ignoreProperties 对象中需要过滤的属性列表
+     * @return 未格式化的Json字符串
+     */
+    public static String toJsonIgnoreSpeciallyStr(Object obj, String... ignoreProperties) {
+        Set<String> ignorePropertySet = new HashSet<>();
+        Collections.addAll(ignorePropertySet, ignoreProperties);
+        return toJsonStr(obj, false, ignorePropertySet, false);
+    }
+
+    public static String toJsonIgnoreSpeciallyStr(Object obj, boolean takeEffectByJsonIgnoreSpecially,
+                                                  String... ignoreProperties) {
+        Set<String> ignorePropertySet = new HashSet<>();
+        Collections.addAll(ignorePropertySet, ignoreProperties);
+        return toJsonStr(obj, takeEffectByJsonIgnoreSpecially, ignorePropertySet, false);
     }
 
     /**
@@ -197,7 +229,7 @@ public class JsonUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T parseObj(String jsonStr, Class<T> clazz) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return null;
         }
         if (clazz == null) {
@@ -217,8 +249,8 @@ public class JsonUtils {
      * 解析Json字符串转成对象（包括转成泛型类或复杂参数型类的对象）
      * 强烈建议使用此方法来反序列化json字符串到复杂的java对象
      * <p>
-     * 如Map<String,String> map = parseObj("{}", new TypeReference<Map<String, String>>(){});
-     * 如List<Set<String>> list = JsonUtils.parseObj("[[\"666\"]]", new TypeReference<List<Set<String>>>(){});
+     * 如Map&lt;String,String&gt; map = parseObj("{}", new TypeReference&lt;Map&lt;String, String&gt;&gt;(){});
+     * 如List&lt;Set&lt;String&gt;&gt; list = JsonUtils.parseObj("[[\"666\"]]", new TypeReference&lt;List&lt;Set&lt;String&gt;&gt;&gt;(){});
      *
      * @param jsonStr       Json字符串
      * @param typeReference 类型引用对象，可以是Map/List/Set等(不限于集合)的类型引用
@@ -226,12 +258,12 @@ public class JsonUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T parseObj(String jsonStr, TypeReference<T> typeReference) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return null;
         }
         if (typeReference == null) {
             throw new IllegalArgumentException("TypeReference不能为null");
-        } else if (TypeUtils.isAssignable(typeReference.getType(), String.class)) {
+        } else if (Reflector.isAssignable(typeReference.getType(), String.class)) {
             return (T) toJsonStr(jsonStr);
         }
         try {
@@ -244,9 +276,9 @@ public class JsonUtils {
     /**
      * 解析Json字符串转成泛型类或复杂参数型类对象
      * 可解析成类似以下对象
-     * RequestMsg<AddEnterpriseInVo> msg = JsonUtils.parseParametricObj("{}", RequestMsg.class, AddEnterpriseInVo.class);
-     * Map<String, Object> map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class);
-     * 还有List<String>等等
+     * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class, AddEnterpriseInVo.class);
+     * Map&lt;String, Object&gt; map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class);
+     * 还有List&lt;String&gt;等等
      *
      * @param jsonStr         Json字符串
      * @param parametricClass 最外层Class，即带泛型等参数的Class，如Map.class/List.class
@@ -256,7 +288,7 @@ public class JsonUtils {
     @SuppressWarnings("unchecked")
     public static <T> T parseParametricObj(String jsonStr, Class<?> parametricClass,
                                            Class<?>... paramClasses) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return null;
         }
         if (parametricClass == null) {
@@ -279,7 +311,7 @@ public class JsonUtils {
 
     public static <K, V> Map<K, V> parseMap(String jsonStr, Class<K> keyClass,
                                             Class<V> valueClass) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return new LinkedHashMap<>(0);
         }
         if (keyClass == null) {
@@ -301,14 +333,35 @@ public class JsonUtils {
     }
 
     /**
+     * 解析Json字符串转成TransMap
+     *
+     * @param jsonStr Json字符串
+     * @return TransMap
+     */
+    public static TransMap parseTransMap(String jsonStr) {
+        if (!StringUtils.hasText(jsonStr)) {
+            return new TransMap(0);
+        }
+
+        MapLikeType mapLikeType = OBJECT_MAPPER.getTypeFactory()
+                .constructRawMapLikeType(TransMap.class);
+
+        try {
+            return OBJECT_MAPPER.readValue(jsonStr, mapLikeType);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("解析Json字符串转成TransMap失败", e);
+        }
+    }
+
+    /**
      * 解析Json字符串转成List
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
-     * @return List<T>
+     * @return List&lt;T&gt;
      */
     public static <T> List<T> parseList(String jsonStr, Class<T> elemClass) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return new ArrayList<>(0);
         }
         if (elemClass == null) {
@@ -330,10 +383,10 @@ public class JsonUtils {
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
-     * @return Set<T>
+     * @return Set&lt;T&gt;
      */
     public static <T> Set<T> parseSet(String jsonStr, Class<T> elemClass) {
-        if (!StringUtils.hasText(jsonStr)) {
+        if (ParameterUtils.isEmpty(jsonStr)) {
             return new LinkedHashSet<>(0);
         }
         if (elemClass == null) {
@@ -350,4 +403,150 @@ public class JsonUtils {
         }
     }
 
+    /**
+     * 序列化对象成Json字符串.
+     *
+     * @param obj                             待序列化成json字符串的对象
+     * @param takeEffectByJsonIgnoreSpecially 是否通过@JsonIgnoreSpecially注解过滤属性
+     * @param ignoreProperties                哪些属性需要额外过滤
+     * @param printerPretty                   是否格式化输出
+     * @return json字符串
+     */
+    private static String toJsonStr(Object obj, boolean takeEffectByJsonIgnoreSpecially,
+                                    Set<String> ignoreProperties, boolean printerPretty) {
+        if (obj == null) {
+            return null;
+        }
+
+        try {
+            if (obj instanceof String) {
+                try {
+                    //如果obj本身是字符串，先转一次成对象(Map或List或String)
+                    //这么做可以去掉字符串中的回车等空白字符串
+                    obj = OBJECT_MAPPER.readValue((String) obj, Object.class);
+                } catch (IOException e) {/*ignore*/}
+            }
+
+            ObjectMapper objectMapper;
+            if (ignoreProperties != null && ignoreProperties.size() > 0) {
+                objectMapper = createIgnoreSpeciallyMapper(obj.getClass(), ignoreProperties);
+            } else {
+                objectMapper = OBJECT_MAPPER;
+            }
+
+            if (takeEffectByJsonIgnoreSpecially) {
+                //判断是否还是静态的OBJECT_MAPPER，如果是，则复制一个对象出来使用
+                if (objectMapper == OBJECT_MAPPER) {
+                    objectMapper = objectMapper.copy();
+                }
+                SerializerFactory serializerFactory = objectMapper.getSerializerFactory();
+                serializerFactory = serializerFactory.withSerializerModifier(IGNORE_SPECIALLY_BEAN_SERIALIZER_MODIFIER);
+                objectMapper.setSerializerFactory(serializerFactory);
+            }
+
+            ObjectWriter objectWriter = objectMapper.writer();
+            if (printerPretty) {
+                objectWriter = objectWriter.withDefaultPrettyPrinter();
+            }
+
+            return objectWriter.writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("序列化对象成Json字符串失败", e);
+        }
+    }
+
+    /**
+     * 生成clazz和ignoreProperties对应的ObjectMapper
+     *
+     * @param clazz            被过滤属性的载体对象
+     * @param ignoreProperties 被过滤的属性列表
+     * @return ObjectMapper
+     */
+    private static ObjectMapper createIgnoreSpeciallyMapper(Class<?> clazz, Set<String> ignoreProperties) {
+        //为保证静态的OBJECT_MAPPER的初始性，复制一个对象出来使用
+        ObjectMapper objectMapper = OBJECT_MAPPER.copy();
+        objectMapper.addMixIn(clazz, JsonIgnoreSpeciallyBeanSerializerModifier.class);
+        FilterProvider filterProvider = createIgnoreSpeciallyFilterProvider(ignoreProperties);
+        return objectMapper.setFilterProvider(filterProvider);
+    }
+
+    /**
+     * 生成ignoreProperties对应的FilterProvider
+     *
+     * @param ignoreProperties 属性过滤列表
+     * @return FilterProvider
+     */
+    private static FilterProvider createIgnoreSpeciallyFilterProvider(Set<String> ignoreProperties) {
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        SimpleBeanPropertyFilter propertyFilter = SimpleBeanPropertyFilter.serializeAllExcept(ignoreProperties);
+        filterProvider.addFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID, propertyFilter);
+        return filterProvider;
+    }
+
+    /**
+     * 序列化Bean的BeanPropertyWriter修改器
+     * 目的是进行属性过滤操作
+     *
+     * @author Mr.XiHui
+     * @date 2019/1/7
+     * @see BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)
+     */
+    @JsonFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID)
+    private static class JsonIgnoreSpeciallyBeanSerializerModifier extends BeanSerializerModifier {
+
+        /**
+         * 注意当前类头上声明了一个注解
+         * "@JsonFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID)",
+         * 是因为要使用{@link com.fasterxml.jackson.databind.ObjectMapper#addMixIn(Class target, Class mixinSource)}
+         * 来混入/掺和mixinSource上声明的JsonFilter注解指定的{@link com.fasterxml.jackson.databind.ser.PropertyFilter}
+         * 属性过滤器，再通过{@link JsonUtils#toJsonIgnoreSpeciallyStr(Object, String...)}方法来序列化json日志字符串
+         */
+        private static final String JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID = "JsonIgnoreSpecially";
+
+        /**
+         * 修改BeanPropertyWriter集合的属性，以使
+         * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object)}方法或
+         * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object obj,
+         *                                           boolean takeEffectByJsonIgnoreSpecially,
+         *                                           String... ignoreProperties)}
+         * 当takeEffectByJsonIgnoreSpecially为true时对属性进行过滤操作
+         * <p>
+         * {@link BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)}方法中会有这么一段 <br/>
+         * if (_factoryConfig.hasSerializerModifiers()) { <br/>
+         * &nbsp;&nbsp;for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) { <br/>
+         * &nbsp;&nbsp;&nbsp;&nbsp;props = mod.changeProperties(config, beanDesc, props); <br/>
+         * &nbsp;&nbsp;} <br/>
+         * } <br/>
+         * 代表这里从factoryConfig中拿出来Modifiers集合，并且通过这些Modifiers对List<BeanPropertyWriter>进行修改 <br/>
+         * 所以定义当前类重写此方法以进行属性过滤操作
+         * <br>
+         * 为使当前修改器生效，需要如下配置ObjectMapper再使用 <br>
+         *
+         * SerializerFactory serializerFactory = objectMapper.getSerializerFactory(); <br>
+         * serializerFactory = serializerFactory.withSerializerModifier(beanSerializerModifier); <br>
+         * objectMapper.setSerializerFactory(serializerFactory); <br>
+         *
+         * @return List&lt;BeanPropertyWriter>
+         */
+        @Override
+        public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription beanDesc,
+                                                         List<BeanPropertyWriter> beanProperties) {
+            if (beanProperties == null) {
+                return super.changeProperties(config, beanDesc, null);
+            }
+
+            // 循环所有的BeanPropertyWriter
+            for (int i = 0; i < beanProperties.size(); i++) {
+                BeanPropertyWriter beanPropertyWriter = beanProperties.get(i);
+
+                //调用JsonUtils的toJsonIgnoreSpeciallyStr方法的takeEffectByJsonIgnoreSpecially为true时，
+                //判断属性上是否声明有@JsonIgnoreSpecially注解，如果有则过滤此属性
+                JsonIgnoreSpecially jsonIgnoreSpecially = beanPropertyWriter.getAnnotation(JsonIgnoreSpecially.class);
+                if (jsonIgnoreSpecially != null) {
+                    beanProperties.remove(i--);
+                }
+            }
+            return beanProperties;
+        }
+    }
 }
