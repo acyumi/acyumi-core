@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Mr.XiHui
  * @date 2017/12/5 19:03
- * @see com.esotericsoftware.reflectasm.MethodAccess
  * @see org.springframework.util.ReflectionUtils
  * @see org.springframework.beans.BeanUtils
- * @see TransformUtils
+ * @see com.acyumi.utils.TransformUtils
+ * <div style='display: none'>@see com.esotericsoftware.reflectasm.MethodAccess</div>
  */
 public abstract class Reflector {
 
@@ -107,7 +107,7 @@ public abstract class Reflector {
      *
      * @param clazz    对象Class
      * @param initArgs 实例化对象需要的入参
-     * @return Constructor<?>
+     * @return Constructor&lt;?&gt;
      */
     public static Constructor<?> getConstructor(Class<?> clazz, Object... initArgs) {
         if (clazz == null) {
@@ -142,10 +142,10 @@ public abstract class Reflector {
      * @param typeReference 类型引用对象，一般通过使用内部类的方式构建
      * @return Type
      * @see TypeReference
-     * @see org.apache.ibatis.type.TypeReference
      * @see com.google.common.reflect.TypeToken
      * @see org.springframework.core.ParameterizedTypeReference
      * @see #makeParamType(Class, Type...)
+     * <div style='display: none'>@see org.apache.ibatis.type.TypeReference</div>
      */
     public static Type getType(TypeReference typeReference) {
         return typeReference.getType();
@@ -182,7 +182,7 @@ public abstract class Reflector {
     /**
      * 判断pType是否subType的上级(继承的父类或实现的接口)
      * 如果是参数化类型，当最外层Class是之间是isAssignable关系且其中的元素类型相同才是true
-     * 其实有时候反射赋值时我们希望List<String>当成Collection<Object>来用，
+     * 其实有时候反射赋值时我们希望List&lt;String&gt;当成Collection&lt;Object&gt;来用，
      * 这时候此方法判断返回的是false，我们需要再进一步对其中元素泛型类型进行判断
      * {@link #makeParamType(Class, Type...)}
      * isAssignable(makeParamType(Collection.class, Object.class),makeParamType(List.class, String.class))

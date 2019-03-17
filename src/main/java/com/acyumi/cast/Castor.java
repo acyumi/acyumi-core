@@ -12,9 +12,10 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * 类型转换相关的方法
+ * 类型转换相关的方法.
  * <p>
  * 此类的作用是尽可能将对象转换成目标类型
+ * </p>
  *
  * @author Mr.XiHui
  * @date 2018/04/22 18:37
@@ -25,7 +26,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public abstract class Castor {
 
     /**
-     * 尝试将源对象转换成目标类型
+     * 尝试将源对象转换成目标类型.
      *
      * @param src     源对象
      * @param srcType 源类型
@@ -225,7 +226,7 @@ public abstract class Castor {
     }
 
     /**
-     * 将源对象转化为jdk对象
+     * 将源对象转化为jdk对象.
      * 曲线救国：其他jdk类型借助Json字符串来转换
      *
      * @param src      待转换的源对象

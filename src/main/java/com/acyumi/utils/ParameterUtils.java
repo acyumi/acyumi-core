@@ -3,8 +3,6 @@ package com.acyumi.utils;
 import com.acyumi.reflect.Reflector;
 import com.acyumi.reflect.reflectasm.MethodAccessor;
 import com.google.common.primitives.Ints;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletRequest;
 import java.lang.reflect.Array;
@@ -19,12 +17,10 @@ import java.util.function.BiConsumer;
  * @date 2017/9/22
  * @see org.springframework.util.ObjectUtils
  * @see org.springframework.util.CollectionUtils
- * @see StringUtils
+ * @see org.springframework.util.StringUtils
  * @see org.springframework.util
  */
 public abstract class ParameterUtils {
-
-    private static final String NULL_STRING = "null";
 
     /**
      * 检查并删除空元素后判断Collection是否为空
@@ -189,18 +185,18 @@ public abstract class ParameterUtils {
             return true;
         }
         //return !org.springframework.util.StringUtils.hasText(charSequence) || NULL_STRING.contentEquals(charSequence);
-        if (charSequence.length() == 0) {
+        int length = charSequence.length();
+        if (length == 0) {
             return true;
         }
         boolean hasText = false;
-        int strLen = charSequence.length();
-        for (int i = 0; i < strLen; i++) {
+        for (int i = 0; i < length; i++) {
             if (!Character.isWhitespace(charSequence.charAt(i))) {
                 hasText = true;
                 break;
             }
         }
-        if (hasText && !NULL_STRING.contentEquals(charSequence)) {
+        if (hasText) {
             return false;
         }
         return true;
@@ -286,11 +282,11 @@ public abstract class ParameterUtils {
         List<String> strings = new ArrayList<>(split.length);
         for (int i = 0; i < split.length; i++) {
             String str = split[i].trim();
-            if (StringUtils.hasText(str) && !NULL_STRING.equals(str)) {
-                strings.add(str);
+            if (isEmpty(str)) {
+                continue;
             }
+            strings.add(str);
         }
-        //rmEmptyElement(strings);
         return strings;
     }
 
@@ -298,7 +294,7 @@ public abstract class ParameterUtils {
      * 因为Arrays.asList得到的List是不支持增删的
      * 所以另外写了一个数组转List的实现
      *
-     * @return 可操作的ArrayList，非{@link Arrays.ArrayList}
+     * @return 可操作的java.util.ArrayList，非{@link Arrays}中的ArrayList内部类
      */
     @SafeVarargs
     public static <T> List<T> arrayAsList(T... t) {
@@ -423,11 +419,11 @@ public abstract class ParameterUtils {
     /**
      * 把target集合拆分成多个ArrayList的集合，
      * 拆分后除最后一个ArrayList外，每个ArrayList的大小为eachSize，
-     * 最后一个ArrayList的大小 <= eachSize，具体看target的大小能否被eachSize整除
+     * 最后一个ArrayList的大小 &lt;= eachSize，具体看target的大小能否被eachSize整除
      *
      * @param target   待拆分的集合
      * @param eachSize 拆分后每个子集合元素个数
-     * @return List&lt;List&lt;T>>
+     * @return List&lt;List&lt;T&gt;&gt;
      */
     public static <T> List<List<T>> splitList(List<T> target, int eachSize) {
         if (isEmpty(target) || eachSize == 0) {
@@ -470,8 +466,7 @@ public abstract class ParameterUtils {
             if (o instanceof Map.Entry) {
                 Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
                 value = entry.getValue();
-                if (value instanceof String && (!StringUtils.hasText((String) value)
-                        || NULL_STRING.equals(value))) {
+                if (value instanceof String && isEmpty(value)) {
                     entry.setValue(null);
                 }
             } else if (!(o instanceof Iterable) && !(o instanceof Object[])) {
@@ -480,8 +475,7 @@ public abstract class ParameterUtils {
                 for (int i = 0; i < fieldNames.length; i++) {
                     String fieldName = fieldNames[i];
                     value = methodAccessor.getFieldValue(o, fieldName);
-                    if (value instanceof String && (!StringUtils.hasText((String) value)
-                            || NULL_STRING.equals(value))) {
+                    if (value instanceof String && isEmpty(value)) {
                         methodAccessor.setFieldValue(o, fieldName, null);
                     }
                 }
@@ -569,7 +563,7 @@ public abstract class ParameterUtils {
 
     /**
      * 蛇型(下划线小写型)字符串转成驼峰式字符串
-     * 如 the_google -> theGoogle
+     * 如 the_google -&gt; theGoogle
      *
      * 此方法性能上应该比大部分其他封装的方法要好
      *
@@ -618,7 +612,7 @@ public abstract class ParameterUtils {
 
     /**
      * 驼峰式字符串转成蛇型(下划线小写型)字符串
-     * 如 theGoogle -> the_google
+     * 如 theGoogle -&gt; the_google
      *
      * 此方法性能上应该比大部分其他封装的方法要好
      *
@@ -719,10 +713,9 @@ public abstract class ParameterUtils {
         return new String(chars, 0, textCount);
     }
 
-
     /**
      * Returns a capacity that is sufficient to keep the map from being resized as
-     * long as it grows no larger than expectedSize and the load factor is >= its
+     * long as it grows no larger than expectedSize and the load factor is &gt;= its
      * default (0.75).
      */
     public static int calcMapCapacity(int expectedSize) {
@@ -754,13 +747,19 @@ public abstract class ParameterUtils {
      */
     public static <T> void assertPojoFields(T pojo, String... filedNames) {
 
-        Assert.notNull(pojo, "传入的POJO不能为null");
-        Assert.notEmpty(filedNames, "成员变量名列表不能为空");
+        if (pojo == null) {
+            throw new IllegalArgumentException("传入的POJO不能为null");
+        }
+        if (isEmpty(filedNames)) {
+            throw new IllegalArgumentException("成员变量名列表不能为空");
+        }
 
         MethodAccessor methodAccessor = Reflector.getMethodAccessor(pojo.getClass());
         for (int i = 0; i < filedNames.length; i++) {
             String fieldName = filedNames[i];
-            Assert.hasText(fieldName, "传入的第" + (i + 1) + "个成员变量名不能为null/空");
+            if (isEmpty(fieldName)) {
+                throw new IllegalArgumentException("传入的第" + (i + 1) + "个成员变量名不能为null/空");
+            }
             assertValue(fieldName, methodAccessor.getFieldValue(pojo, fieldName));
         }
 
@@ -773,7 +772,9 @@ public abstract class ParameterUtils {
      */
     public static <T> void assertPojoAllFields(T pojo) {
 
-        Assert.notNull(pojo, "传入的POJO不能为null");
+        if (pojo == null) {
+            throw new IllegalArgumentException("传入的POJO不能为null");
+        }
 
         MethodAccessor methodAccessor = Reflector.getMethodAccessor(pojo.getClass());
         String[] fieldNames = methodAccessor.getFieldNames();
@@ -792,8 +793,12 @@ public abstract class ParameterUtils {
      */
     public static void assertRequestParams(ServletRequest request, String... keys) {
 
-        Assert.notEmpty(request.getParameterMap(), "请求参数不能为空");
-        Assert.notEmpty(keys, "key列表不能为空");
+        if (isEmpty(request.getParameterMap())) {
+            throw new IllegalArgumentException("请求参数不能为空");
+        }
+        if (isEmpty(keys)) {
+            throw new IllegalArgumentException("key列表不能为空");
+        }
 
         for (int i = 0; i < keys.length; i++) {
             String key = keys[i];
@@ -807,10 +812,15 @@ public abstract class ParameterUtils {
      * @param params 需要进行校验的Map对象
      * @param keys   需要进行非null/空校验的key列表
      */
+    @SafeVarargs
     public static <K, V> void assertMapValues(Map<K, V> params, K... keys) {
 
-        Assert.notEmpty(params, "请求参数不能为空");
-        Assert.notEmpty(keys, "key列表不能为空");
+        if (isEmpty(params)) {
+            throw new IllegalArgumentException("请求参数不能为空");
+        }
+        if (isEmpty(keys)) {
+            throw new IllegalArgumentException("key列表不能为空");
+        }
 
         for (int i = 0; i < keys.length; i++) {
             K key = keys[i];
@@ -825,7 +835,9 @@ public abstract class ParameterUtils {
      */
     public static <K, V> void assertMapAllValues(Map<K, V> params) {
 
-        Assert.notEmpty(params, "请求参数不能为空");
+        if (isEmpty(params)) {
+            throw new IllegalArgumentException("请求参数不能为空");
+        }
 
         for (Map.Entry<K, V> entry : params.entrySet()) {
             assertValue(entry.getKey(), entry.getValue());
@@ -834,7 +846,8 @@ public abstract class ParameterUtils {
     }
 
     public static <K, V> void assertValue(K keyOrFieldName, V value) {
-        String failedMsg = "参数“" + keyOrFieldName + "”的值不能为null/空";
-        Assert.isTrue(!isEmpty(value), failedMsg);
+        if (isEmpty(value)) {
+            throw new IllegalArgumentException("参数“" + keyOrFieldName + "”的值不能为null/空");
+        }
     }
 }

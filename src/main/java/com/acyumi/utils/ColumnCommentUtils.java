@@ -2,7 +2,6 @@ package com.acyumi.utils;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,7 +84,7 @@ public class ColumnCommentUtils {
             }
 
             String columnComment = rowSet.getString(3);
-            if (!StringUtils.hasText(columnComment)) {
+            if (ParameterUtils.isEmpty(columnComment)) {
                 return;
             }
 

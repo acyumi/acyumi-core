@@ -1,7 +1,5 @@
 package com.acyumi.utils;
 
-import org.springframework.util.StringUtils;
-
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.ParsePosition;
@@ -257,7 +255,7 @@ public abstract class DateTimeUtils {
      */
     public static Date dynamicParseToDate(String timeStr, String... specialPatterns) {
 
-        if (timeStr == null || !StringUtils.hasText(timeStr = timeStr.trim())) {
+        if (timeStr == null || ParameterUtils.isEmpty(timeStr = timeStr.trim())) {
             return null;
         }
 

@@ -193,7 +193,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
      *
      * @param key 键
      * @param <E> List的元素类型
-     * @return List&lt;E>
+     * @return List&lt;E&gt;
      */
     @SuppressWarnings("unchecked")
     public <E> List<E> getList(String key) {
@@ -214,7 +214,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
      *
      * @param key 键
      * @param <E> List的元素类型
-     * @return List&lt;E>
+     * @return List&lt;E&gt;
      */
     @SuppressWarnings("unchecked")
     public <E> List<E> getList(String key, Class<E> elemClass) {
@@ -263,7 +263,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
      * @param key 键
      * @param <K> 欲获取Map的键类型
      * @param <V> 欲获取Map的值类型
-     * @return Map&lt;K,V>
+     * @return Map&lt;K,V&gt;
      */
     @SuppressWarnings("unchecked")
     public <K, V> Map<K, V> getMap(String key, TypeReference<Map<K, V>> typeReference) {

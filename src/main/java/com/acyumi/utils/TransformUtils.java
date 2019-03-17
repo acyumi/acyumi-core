@@ -6,7 +6,6 @@ import com.acyumi.reflect.Reflector;
 import com.acyumi.reflect.reflectasm.MethodAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Type;
@@ -16,37 +15,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 标准POJO对象/Map&lt;String,Object>之间的转化工具类
+ * 标准POJO对象/Map&lt;String,Object&gt;之间的转化工具类
  *
- * <font color='yellow'>当源对象的值类型与目标对象setter的入参类型不匹配<br/>
+ * <font color='yellow'>当源对象的值类型与目标对象setter的入参类型不匹配<br>
  * (包括List/Map中元素类型不匹配)时，将尝试进行转换，转换失败则提示异常</font>
  * <p>
- * 如果set到目标pojo成员变量的值是List/Map等含有泛型元素的类型，<br/>
- * 且源getter返回值List/Map等的元素与目标setter入参List/Map等的元素不匹配时，反射允许set进去，不出异常，<br/>
- * 不过后果就是当你transform完成并从目标pojo对象中取List/Map等成员变量出来再取其元素时，极有可能会出现类型转换异常，<br/>
- * 原因就是此时目标pojo的List/Map成员变量中引用的元素类型已经跟声明的不一样了<br/>
+ * 如果set到目标pojo成员变量的值是List/Map等含有泛型元素的类型，<br>
+ * 且源getter返回值List/Map等的元素与目标setter入参List/Map等的元素不匹配时，反射允许set进去，不出异常，<br>
+ * 不过后果就是当你transform完成并从目标pojo对象中取List/Map等成员变量出来再取其元素时，极有可能会出现类型转换异常，<br>
+ * 原因就是此时目标pojo的List/Map成员变量中引用的元素类型已经跟声明的不一样了<br>
  * <p>
- * 这里涉及到一些泛型类的操作，所以只是部分使用了reflectasm进行反射处理<br/>
- * (使用groupId为com.esotericsoftware的新版本，非com.googlecode的)<br/>
+ * 这里涉及到一些泛型类的操作，所以只是部分使用了reflectasm进行反射处理<br>
  * <p>
- * 类关键词-->“标准POJO”、“Map&lt;String,Object>”、“可转化/传递”
+ * 类关键词--&gt;“标准POJO”、“Map&lt;String,Object&gt;”、“可转化/传递”
  *
  * @author Mr.XiHui
  * @date 2017/9/9 17:05
  * @see org.springframework.beans.BeanUtils
  * @see org.springframework.core.GenericTypeResolver
  * @see com.google.common.reflect.TypeToken
- * @see org.objectweb.asm.MethodVisitor
  * @see org.springframework.asm.MethodVisitor
+ * <div style='display: none'>@see org.objectweb.asm.MethodVisitor</div>
  */
 public abstract class TransformUtils {
 
     /**
-     * 将源对象的成员变量值转递给目标对象<br/>
-     * 目标对象必须包含源对象中的所有成员变量/键<br/>
+     * 将源对象的成员变量值转递给目标对象<br>
+     * 目标对象必须包含源对象中的所有成员变量/键<br>
      * <font color='yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</font>
      *
-     * @param source    源对象 (POJO或Map&lt;String,?>)
+     * @param source    源对象 (POJO或Map&lt;String,?&gt;)
      * @param pojoClass pojo的Class
      * @param <T>       目标对象的类型 (POJO)
      * @return T 实例化出来且带有从源对象获取到的所有数据的目标对象
@@ -62,11 +60,11 @@ public abstract class TransformUtils {
     }
 
     /**
-     * 指定源对象的成员变量值以转递给目标对象<br/>
-     * 目标对象中必须有与源对象相同的这些被指定的成员变量/键<br/>
+     * 指定源对象的成员变量值以转递给目标对象<br>
+     * 目标对象中必须有与源对象相同的这些被指定的成员变量/键<br>
      * <font color='yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</font>
      *
-     * @param source           源对象 (POJO或Map&lt;String,Object>)
+     * @param source           源对象 (POJO或Map&lt;String,Object&gt;)
      * @param pojoClass        目标Class
      * @param onlyNotNull      是否只传递（keysOrFieldNames对应值）非null的值
      * @param keysOrFieldNames 要传递的key/成员变量名列表，如果不指定，则表示所有key/成员变量名
@@ -92,7 +90,7 @@ public abstract class TransformUtils {
      * @param mapClass    目标Map的类型
      * @param keyClass    目标Map的key类型
      * @param valueClass  目标Map的value类型
-     * @return Map&lt;K, V> 如果是Map&lt;String, Object>，则其实例为TransMap
+     * @return Map&lt;K, V&gt; 如果是Map&lt;String, Object&gt;，则其实例为TransMap
      */
     public static <K, V> Map<K, V> transformToMap(Object source, Class<?> mapClass,
                                                   Class<K> keyClass, Class<V> valueClass) {
@@ -124,7 +122,7 @@ public abstract class TransformUtils {
      * @param valueClass  目标Map的value类型
      * @param onlyNotNull   是否只传递（fieldNames对应值）非null的值
      * @param fieldNames    要传递的成员变量名列表，如果不指定，则表示所有成员变量名
-     * @return Map&lt;String, V> 如果是Map&lt;String, Object>，则其实例为TransMap
+     * @return Map&lt;String, V&gt; 如果是Map&lt;String, Object&gt;，则其实例为TransMap
      */
     public static <K, V> Map<K, V> transformPartToMap(Object source, Class<?> mapClass,
                                                       Class<K> keyClass, Class<V> valueClass,
@@ -155,12 +153,12 @@ public abstract class TransformUtils {
      * @param listElemClass 目标List集合中的元素Class
      * @param <T>           目标List集合中的元素类型(POJO或Map或TransMap)
      * @param onlyNotNull   是否只传递非空的值
-     * @return List&lt;T> 目标List集合
+     * @return List&lt;T&gt; 目标List集合
      */
     @SuppressWarnings("unchecked")
     public static <T> List<T> transformList(List<?> sourceList, Class<T> listElemClass, boolean onlyNotNull) {
         List<T> targetList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(sourceList)) {
+        if (ParameterUtils.isEmpty(sourceList)) {
             return targetList;
         }
         if (Map.class.isAssignableFrom(listElemClass)) {
@@ -235,7 +233,7 @@ public abstract class TransformUtils {
         }
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
-            if (!StringUtils.hasText(fieldName)) {
+            if (ParameterUtils.isEmpty(fieldName)) {
                 continue;
             }
             Object value = sourceAccessor.getFieldValue(source, fieldName);
@@ -275,7 +273,7 @@ public abstract class TransformUtils {
         }
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
-            if (!StringUtils.hasText(fieldName)) {
+            if (ParameterUtils.isEmpty(fieldName)) {
                 continue;
             }
             Object value = sourceAccessor.getFieldValue(source, fieldName);
@@ -287,7 +285,7 @@ public abstract class TransformUtils {
     }
 
     private static void transformMapToPojo(Map<?, ?> map, Object pojo, boolean onlyNotNull, String... keys) {
-        if (CollectionUtils.isEmpty(map)) {
+        if (ParameterUtils.isEmpty(map)) {
             return;
         }
         Assert.isTrue(!(pojo instanceof Map), "target属于Map,类型不匹配,请传入POJO");
@@ -310,7 +308,7 @@ public abstract class TransformUtils {
         } else {
             for (int i = 0; i < keys.length; i++) {
                 String key = keys[i];
-                if (!StringUtils.hasText(key)) {
+                if (ParameterUtils.isEmpty(key)) {
                     continue;
                 }
                 Object value = map.get(key);
@@ -353,7 +351,7 @@ public abstract class TransformUtils {
         if (targetMap == null) {
             return;
         }
-        if (!CollectionUtils.isEmpty(map)) {
+        if (!ParameterUtils.isEmpty(map)) {
             if (keys == null || keys.length == 0) {
                 for (Map.Entry<?, ?> entry : map.entrySet()) {
                     Object value = entry.getValue();
@@ -413,7 +411,7 @@ public abstract class TransformUtils {
         }
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
-            if (!StringUtils.hasText(fieldName)) {
+            if (ParameterUtils.isEmpty(fieldName)) {
                 continue;
             }
             //成员变量名,也就是Map的key
@@ -430,7 +428,7 @@ public abstract class TransformUtils {
         Assert.notNull(stringSerializer, "key序列化转换器不能为null");
         Assert.notNull(objectSerializer, "value序列化转换器不能为null");
         Map<byte[], byte[]> binaryMap = new LinkedHashMap<>();
-        if (!CollectionUtils.isEmpty(map)) {
+        if (!ParameterUtils.isEmpty(map)) {
             if (keys == null) {
                 for (Map.Entry<?, ?> entry : map.entrySet()) {
                     putToBinaryMap(entry.getKey(), entry.getValue(), binaryMap, stringSerializer, objectSerializer);
@@ -548,8 +546,8 @@ public abstract class TransformUtils {
      * @return Object 转换后的value
      * @see com.google.common.reflect.TypeToken
      * @see com.fasterxml.jackson.core.type.TypeReference
-     * @see org.apache.ibatis.type.TypeReference
      * @see org.springframework.core.ParameterizedTypeReference
+     * <div style='display: none'>@see org.apache.ibatis.type.TypeReference</div>
      */
     private static Object trans2SetterParameter(String keyOrFieldName, Object value,
                                                 Type getterGenericReturnType,
