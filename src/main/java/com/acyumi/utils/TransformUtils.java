@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * 标准POJO对象/Map&lt;String,Object&gt;之间的转化工具类. <br>
  *
- * <span style='color:yellow'>当源对象的值类型与目标对象setter的入参类型不匹配
+ * <span style='color:green'>当源对象的值类型与目标对象setter的入参类型不匹配
  * (包括List/Map中元素类型不匹配)时，将尝试进行转换，转换失败则提示异常</span>
  * <p>
  * 如果set到目标pojo成员变量的值是List/Map等含有泛型元素的类型，<br>
@@ -42,7 +42,7 @@ public abstract class TransformUtils {
     /**
      * 将源对象的成员变量值转递给目标对象<br>
      * 目标对象必须包含源对象中的所有成员变量/键<br>
-     * <span style='color:yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
+     * <span style='color:green'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
      *
      * @param source    源对象 (POJO或Map&lt;String,?&gt;)
      * @param pojoClass pojo的Class
@@ -62,7 +62,7 @@ public abstract class TransformUtils {
     /**
      * 指定源对象的成员变量值以转递给目标对象<br>
      * 目标对象中必须有与源对象相同的这些被指定的成员变量/键<br>
-     * <span style='color:yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
+     * <span style='color:green'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
      *
      * @param source           源对象 (POJO或Map&lt;String,Object&gt;)
      * @param pojoClass        目标Class
