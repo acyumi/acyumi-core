@@ -74,6 +74,9 @@ public class JsonUtils {
         //忽略 在json字符串中存在，但是在java对象中不存在对应属性的情况。防止错误
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+        //是否接受将没有使用“[]”包裹的单个值反序列化到数组或集合上
+        //OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+
         //取消默认转换timestamps形式
         OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
@@ -246,10 +249,10 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成对象（包括转成泛型类或复杂参数型类的对象）
+     * 解析Json字符串转成对象（包括转成泛型类或复杂参数型类的对象）. <br>
      * 强烈建议使用此方法来反序列化json字符串到复杂的java对象
      * <p>
-     * 如Map&lt;String,String&gt; map = parseObj("{}", new TypeReference&lt;Map&lt;String, String&gt;&gt;(){});
+     * 如Map&lt;String,String&gt; map = parseObj("{}", new TypeReference&lt;Map&lt;String, String&gt;&gt;(){}); <br>
      * 如List&lt;Set&lt;String&gt;&gt; list = JsonUtils.parseObj("[[\"666\"]]", new TypeReference&lt;List&lt;Set&lt;String&gt;&gt;&gt;(){});
      *
      * @param jsonStr       Json字符串
@@ -274,10 +277,10 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成泛型类或复杂参数型类对象
-     * 可解析成类似以下对象
-     * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class, AddEnterpriseInVo.class);
-     * Map&lt;String, Object&gt; map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class);
+     * 解析Json字符串转成泛型类或复杂参数型类对象 <br>
+     * 可解析成类似以下对象 <br>
+     * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class, AddEnterpriseInVo.class); <br>
+     * Map&lt;String, Object&gt; map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class); <br>
      * 还有List&lt;String&gt;等等
      *
      * @param jsonStr         Json字符串
@@ -495,20 +498,20 @@ public class JsonUtils {
     private static class JsonIgnoreSpeciallyBeanSerializerModifier extends BeanSerializerModifier {
 
         /**
-         * 注意当前类头上声明了一个注解
-         * "@JsonFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID)",
-         * 是因为要使用{@link com.fasterxml.jackson.databind.ObjectMapper#addMixIn(Class target, Class mixinSource)}
-         * 来混入/掺和mixinSource上声明的JsonFilter注解指定的{@link com.fasterxml.jackson.databind.ser.PropertyFilter}
+         * 注意当前类头上声明了一个注解. <br>
+         * "@JsonFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID)", <br>
+         * 是因为要使用{@link com.fasterxml.jackson.databind.ObjectMapper#addMixIn(Class target, Class mixinSource)} <br>
+         * 来混入/掺和mixinSource上声明的JsonFilter注解指定的{@link com.fasterxml.jackson.databind.ser.PropertyFilter} <br>
          * 属性过滤器，再通过{@link JsonUtils#toJsonIgnoreSpeciallyStr(Object, String...)}方法来序列化json日志字符串
          */
         private static final String JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID = "JsonIgnoreSpecially";
 
         /**
-         * 修改BeanPropertyWriter集合的属性，以使
-         * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object)}方法或
+         * 修改BeanPropertyWriter集合的属性，以使 <br>
+         * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object)}方法或 <br>
          * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object obj,
          *                                           boolean takeEffectByJsonIgnoreSpecially,
-         *                                           String... ignoreProperties)}
+         *                                           String... ignoreProperties)} <br>
          * 当takeEffectByJsonIgnoreSpecially为true时对属性进行过滤操作
          * <p>
          * {@link BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)}方法中会有这么一段 <br/>
