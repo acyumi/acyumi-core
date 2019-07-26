@@ -45,13 +45,14 @@
 //
 //    /**
 //     * 修改BeanPropertyWriter集合的属性，指定具体类型的null序列化器
-//     * <p>
-//     * {@link BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)}方法中会有这么一段 <br>
+//     * <pre>
+//     * {@link BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)}方法中会有这么一段
 //     * if (_factoryConfig.hasSerializerModifiers()) { <br>
-//     * &nbsp;&nbsp;for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) { <br>
-//     * &nbsp;&nbsp;&nbsp;&nbsp;props = mod.changeProperties(config, beanDesc, props); <br>
-//     * &nbsp;&nbsp;} <br>
-//     * } <br>
+//     * &nbsp;&nbsp;for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
+//     * &nbsp;&nbsp;&nbsp;&nbsp;props = mod.changeProperties(config, beanDesc, props);
+//     * &nbsp;&nbsp;}
+//     * }
+//     * </pre>
 //     * 代表这里从factoryConfig中拿出来Modifiers集合，并且通过这些Modifiers对List&lt;BeanPropertyWriter&gt;进行修改 <br>
 //     * 所以定义当前类重写此方法以指定具体类型的null序列化器
 //     *

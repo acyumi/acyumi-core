@@ -164,6 +164,9 @@ public class JsonUtils {
      * {@link #toJsonStr(Object)}和{@link #toPrettyJsonStr(Object)}序列化对象时，
      * 得到的jsonStr极有可能会包上一层(\"\")，所以增加此方法来去除头尾双引号
      * 如"\"2018-05-01\"".equals(JsonUtils.toJsonStr(LocalDate.of(2018, 5, 1)))是true
+     *
+     * @param jsonStr json字符串
+     * @return 去除头尾双引号的字符串
      */
     public static String unWrapJsonStr(String jsonStr) {
         if (jsonStr == null) {
@@ -228,6 +231,7 @@ public class JsonUtils {
      *
      * @param jsonStr Json字符串
      * @param clazz   返回值Class
+     * @param <T>     返回值的类型
      * @return T
      */
     @SuppressWarnings("unchecked")
@@ -253,10 +257,12 @@ public class JsonUtils {
      * 强烈建议使用此方法来反序列化json字符串到复杂的java对象
      * <p>
      * 如Map&lt;String,String&gt; map = parseObj("{}", new TypeReference&lt;Map&lt;String, String&gt;&gt;(){}); <br>
-     * 如List&lt;Set&lt;String&gt;&gt; list = JsonUtils.parseObj("[[\"666\"]]", new TypeReference&lt;List&lt;Set&lt;String&gt;&gt;&gt;(){});
+     * 如List&lt;Set&lt;String&gt;&gt; list = JsonUtils.parseObj("[[\"666\"]]", new TypeReference&lt;List&lt;Set&lt;
+     * String&gt;&gt;&gt;(){});
      *
      * @param jsonStr       Json字符串
      * @param typeReference 类型引用对象，可以是Map/List/Set等(不限于集合)的类型引用
+     * @param <T>           返回值的类型
      * @return T
      */
     @SuppressWarnings("unchecked")
@@ -279,13 +285,16 @@ public class JsonUtils {
     /**
      * 解析Json字符串转成泛型类或复杂参数型类对象 <br>
      * 可解析成类似以下对象 <br>
-     * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class, AddEnterpriseInVo.class); <br>
-     * Map&lt;String, Object&gt; map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class); <br>
+     * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class,
+     * AddEnterpriseInVo.class); <br>
+     * Map&lt;String, Object&gt; map = JsonUtils.parseParametricObj("{}", HashMap.class, String.class, Object.class);
+     * <br>
      * 还有List&lt;String&gt;等等
      *
      * @param jsonStr         Json字符串
      * @param parametricClass 最外层Class，即带泛型等参数的Class，如Map.class/List.class
      * @param paramClasses    泛型参数Class数组
+     * @param <T>             返回值的类型
      * @return T
      */
     @SuppressWarnings("unchecked")
@@ -361,6 +370,7 @@ public class JsonUtils {
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
+     * @param <T>       元素的类型
      * @return List&lt;T&gt;
      */
     public static <T> List<T> parseList(String jsonStr, Class<T> elemClass) {
@@ -386,6 +396,7 @@ public class JsonUtils {
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
+     * @param <T>       元素的类型
      * @return Set&lt;T&gt;
      */
     public static <T> Set<T> parseSet(String jsonStr, Class<T> elemClass) {
@@ -482,7 +493,8 @@ public class JsonUtils {
     private static FilterProvider createIgnoreSpeciallyFilterProvider(Set<String> ignoreProperties) {
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         SimpleBeanPropertyFilter propertyFilter = SimpleBeanPropertyFilter.serializeAllExcept(ignoreProperties);
-        filterProvider.addFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID, propertyFilter);
+        filterProvider.addFilter(JsonIgnoreSpeciallyBeanSerializerModifier.JSON_IGNORE_PROPERTY_SPECIALLY_FILTER_ID,
+                propertyFilter);
         return filterProvider;
     }
 
@@ -510,8 +522,8 @@ public class JsonUtils {
          * 修改BeanPropertyWriter集合的属性，以使 <br>
          * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object)}方法或 <br>
          * {@link JsonUtils#toJsonIgnoreSpeciallyStr(Object obj,
-         *                                           boolean takeEffectByJsonIgnoreSpecially,
-         *                                           String... ignoreProperties)} <br>
+         * boolean takeEffectByJsonIgnoreSpecially,
+         * String... ignoreProperties)} <br>
          * 当takeEffectByJsonIgnoreSpecially为true时对属性进行过滤操作
          * <p>
          * {@link BeanSerializerFactory#constructBeanSerializer(SerializerProvider, BeanDescription)}方法中会有这么一段 <br/>
@@ -524,7 +536,7 @@ public class JsonUtils {
          * 所以定义当前类重写此方法以进行属性过滤操作
          * <br>
          * 为使当前修改器生效，需要如下配置ObjectMapper再使用 <br>
-         *
+         * <p>
          * SerializerFactory serializerFactory = objectMapper.getSerializerFactory(); <br>
          * serializerFactory = serializerFactory.withSerializerModifier(beanSerializerModifier); <br>
          * objectMapper.setSerializerFactory(serializerFactory); <br>

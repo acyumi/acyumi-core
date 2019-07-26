@@ -203,6 +203,7 @@ public abstract class CryptoUtils {
      * 相比于RSA的优势: <br>
      * 抗攻击性强、CPU占用少、内容使用少、网络消耗低、加密速度快 <br>
      * 随着安全等级的增加，RSA加密法的密钥长度也会成指数增加，而ECC密钥长度却只是成线性增加。
+     * </p>
      */
     private static final String EC_ALGORITHM = "EC";
 
@@ -270,6 +271,7 @@ public abstract class CryptoUtils {
     /**
      * 生成密钥对(公钥和私钥).
      *
+     * @param algorithm 算法
      * @return KeyPair
      */
     public static KeyPair genKeyPair(String algorithm) {

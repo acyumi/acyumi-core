@@ -344,6 +344,8 @@ public abstract class ParameterUtils {
      * 因为Arrays.asList得到的List是不支持增删的，
      * 所以另外写了一个数组转List的实现
      *
+     * @param t   元素对象
+     * @param <T> 元素类型
      * @return 可操作的java.util.ArrayList，非{@link Arrays}中的ArrayList内部类
      */
     @SafeVarargs
@@ -388,6 +390,7 @@ public abstract class ParameterUtils {
      *
      * @param obj      集合或数组或Map或普通对象
      * @param consumer 函数式接口，使用lambda自定义其{BiConsumer#accept(E elem, Integer index)}方法
+     * @param <E>      如果是集合/数组：元素类型，如果是Map: Entry，如果是普通对象: 普通对象本身类型
      */
     @SuppressWarnings("unchecked")
     public static <E> void iterateObj(Object obj, BiConsumer<E, Integer> consumer) {
@@ -433,6 +436,7 @@ public abstract class ParameterUtils {
      * @param obj      集合或数组或Map或普通对象
      * @param function 函数式接口，使用lambda自定义其{BiFunction#apply(E elem, Integer index)}方法
      *                 apply的返回值如果是true，则跳出循环
+     * @param <E>      如果是集合/数组：元素类型，如果是Map: Entry，如果是普通对象: 普通对象本身类型
      */
     @SuppressWarnings("unchecked")
     public static <E> void iterateObj(Object obj, BiFunction<E, Integer, Boolean> function) {
@@ -540,6 +544,7 @@ public abstract class ParameterUtils {
      *
      * @param target   待拆分的集合
      * @param eachSize 拆分后每个子集合元素个数
+     * @param <T>      元素类型
      * @return List&lt;List&lt;T&gt;&gt;
      */
     public static <T> List<List<T>> splitList(List<T> target, int eachSize) {
@@ -565,7 +570,10 @@ public abstract class ParameterUtils {
     /**
      * 检查obj对象中的值是否全都是null或空.
      *
-     * @param obj 待检查的对象
+     * @param obj                待检查的对象
+     * @param ignoreKeysOrFields 键或变量的可变长度实例
+     * @param <K>                键或变量的类型
+     * @return boolean
      */
     @SafeVarargs
     public static <K> boolean areValuesAllEmpty(Object obj, K... ignoreKeysOrFields) {
@@ -683,6 +691,8 @@ public abstract class ParameterUtils {
      *
      * @param map        待操作的Map
      * @param retainKeys 待保留的key列表
+     * @param <K>        键类型
+     * @param <V>        值类型
      */
     public static <K, V> void retainMapKeys(Map<K, V> map, Collection<K> retainKeys) {
         if (!isEmpty(map)) {
@@ -709,7 +719,8 @@ public abstract class ParameterUtils {
     /**
      * 把pojo指定(include)的或所有的fields的值设置成null
      *
-     * @param obj pojo对象
+     * @param obj           pojo对象
+     * @param includeFields 被包含成员变量可变长度实例
      */
     public static void setPojoFieldsToNull(Object obj, String... includeFields) {
         if (obj == null) {
@@ -733,7 +744,8 @@ public abstract class ParameterUtils {
     /**
      * 把pojo指定之外(exclude)的或所有的fields的值设置成null
      *
-     * @param obj pojo对象
+     * @param obj           pojo对象
+     * @param excludeFields 被排除的成员变量可变长度实例
      */
     public static void setPojoFieldsToNullEx(Object obj, String... excludeFields) {
         if (obj == null) {
@@ -832,6 +844,7 @@ public abstract class ParameterUtils {
      * 如 theGoogle -&gt; the_google
      * <p>
      * 此方法性能上应该比大部分其他封装的方法要好
+     * </p>
      *
      * @param camelCase 驼峰式字符串
      * @return 蛇型(下划线小写型)字符串
@@ -957,6 +970,7 @@ public abstract class ParameterUtils {
     /**
      * 将字节数组转成十六进制字符串.
      *
+     * @param bytes 字节数组，一般是包含不可见字节的数组
      * @return 十六进制字符串
      */
     public static String toHexString(byte[] bytes) {
@@ -977,6 +991,7 @@ public abstract class ParameterUtils {
     /**
      * 将十六进制字符串转成字节数组.
      *
+     * @param hexStr 十六进制字符串
      * @return 字节数组
      */
     public static byte[] fromHexString(String hexStr) {
@@ -1024,6 +1039,7 @@ public abstract class ParameterUtils {
      *
      * @param pojo       需要进行校验的POJO  (Model/Entity)
      * @param filedNames 需要进行非null/空校验的成员变量列表
+     * @param <T>        POJO类型
      */
     public static <T> void assertPojoFields(T pojo, String... filedNames) {
 
@@ -1049,6 +1065,7 @@ public abstract class ParameterUtils {
      * 对pojo的所有成员变量值进行非null/空数据校验，检验不通过抛出异常.
      *
      * @param pojo 需要进行校验的POJO  (Model/Entity)
+     * @param <T>  POJO类型
      */
     public static <T> void assertPojoAllFields(T pojo) {
 
@@ -1091,6 +1108,8 @@ public abstract class ParameterUtils {
      *
      * @param params 需要进行校验的Map对象
      * @param keys   需要进行非null/空校验的key列表
+     * @param <K>    键类型
+     * @param <V>    值类型
      */
     @SafeVarargs
     public static <K, V> void assertMapValues(Map<K, V> params, K... keys) {
@@ -1112,6 +1131,8 @@ public abstract class ParameterUtils {
      * 对Map所有值进行非null/空数据校验，检验不通过抛出异常.
      *
      * @param params 需要进行校验的Map对象
+     * @param <K>    键类型
+     * @param <V>    值类型
      */
     public static <K, V> void assertMapAllValues(Map<K, V> params) {
 
@@ -1125,6 +1146,14 @@ public abstract class ParameterUtils {
         //params.forEach(RequestUtils::assertValue);//java8新供用法，目前比java7的foreach慢
     }
 
+    /**
+     * 校验值是否为空.
+     *
+     * @param keyOrFieldName 键或变量实例
+     * @param value          值实例
+     * @param <K>            键或变量泛型
+     * @param <V>            值类型
+     */
     public static <K, V> void assertValue(K keyOrFieldName, V value) {
         if (isEmpty(value)) {
             throw new IllegalArgumentException("参数“" + keyOrFieldName + "”的值不能为null/空");

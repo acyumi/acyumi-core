@@ -164,7 +164,13 @@ public abstract class Reflector {
         return ParameterizedTypeImpl.make(parametricClass, elemTypes, null);
     }
 
-    /*** 判断obj是否clazz的实例 */
+    /**
+     * 判断obj是否clazz的实例
+     *
+     * @param clazz Class对象
+     * @param obj   对象实例
+     * @return boolean
+     */
     public static boolean isInstance(Class<?> clazz, Object obj) {
         return ClassUtils.isAssignableValue(clazz, obj);
     }
@@ -174,6 +180,7 @@ public abstract class Reflector {
      *
      * @param pClass   上级Class
      * @param subClass 下级Class
+     * @return boolean
      */
     public static boolean isAssignable(Class<?> pClass, Class<?> subClass) {
         return ClassUtils.isAssignable(pClass, subClass);
@@ -192,17 +199,28 @@ public abstract class Reflector {
      *
      * @param pType   上级Type
      * @param subType 下级Type
+     * @return boolean
      */
     public static boolean isAssignable(Type pType, Type subType) {
         return TypeUtils.isAssignable(pType, subType);
     }
 
-    /*** 判断是否8种基本数据包装类型之一 */
+    /**
+     * 判断是否8种基本数据包装类型之一
+     *
+     * @param clazz Class对象
+     * @return boolean
+     */
     public static boolean isPrimitiveWrapper(Class<?> clazz) {
         return ClassUtils.isPrimitiveWrapper(clazz);
     }
 
-    /*** 判断是否8种基本数据类型或其包装类型之一 */
+    /**
+     * 判断是否8种基本数据类型或其包装类型之一
+     *
+     * @param clazz Class对象
+     * @return boolean
+     */
     public static boolean isPrimitiveOrWrapper(Class<?> clazz) {
         return ClassUtils.isPrimitiveOrWrapper(clazz);
     }
@@ -246,7 +264,12 @@ public abstract class Reflector {
         return elementType;
     }
 
-    /*** 获取type的实质Class */
+    /**
+     * 获取type的实质Class
+     *
+     * @param type Type
+     * @return Class
+     */
     public static Class<?> getClassFromType(Type type) {
         if (type != null) {
             if (type instanceof Class) {
@@ -261,7 +284,12 @@ public abstract class Reflector {
         return null;
     }
 
-    /*** 判断是否首字母小写，第二字母大写的变量名（奇行种） */
+    /**
+     * 判断是否首字母小写，第二字母大写的变量名（奇行种）
+     *
+     * @param fieldName 变量名
+     * @return boolean
+     */
     public static boolean isAlienName(String fieldName) {
         return fieldName.length() > 1
                 && Character.isLowerCase(fieldName.charAt(0))
@@ -358,7 +386,12 @@ public abstract class Reflector {
         methodAccessor.setFieldValue(obj, fieldName, arg);
     }
 
-    /*** 从内存中获取MethodAccessor */
+    /**
+     * 从内存中获取MethodAccessor
+     *
+     * @param clazz Class对象
+     * @return MethodAccessor实例
+     */
     public static MethodAccessor getMethodAccessor(Class<?> clazz) {
         //return METHOD_ACCESSOR_MAP.computeIfAbsent(clazz, MethodAccessor::new);
         try {
@@ -368,7 +401,12 @@ public abstract class Reflector {
         }
     }
 
-    /*** 获取方法参数名列表(使用Spring支持类库) */
+    /**
+     * 获取方法参数名列表(使用Spring支持类库)
+     *
+     * @param method 方法对象
+     * @return 方法的参数名列表
+     */
     public static String[] getMethodParamNames(Method method) {
         //jdk8可以在编译时加-parameters参数达到在字节码中保留参数名的效果
         //所以不主动指定去编译，method.getParameters()[0].getName()得到的就不是源码的参数名
@@ -376,7 +414,12 @@ public abstract class Reflector {
         return PARAMETER_NAME_CACHE.getParameterNames(method);
     }
 
-    /*** 获取方法入参列表的字符串，用于打印异常信息 */
+    /**
+     * 获取方法入参列表的字符串，用于打印异常信息
+     *
+     * @param args 参数实例列表
+     * @return 方法入参列表的字符串
+     */
     private static String getMethodArgsStr(Object... args) {
         StringBuilder cpsBuilder = new StringBuilder();
         for (int i = 0; i < args.length; i++) {
@@ -410,13 +453,14 @@ public abstract class Reflector {
      * @see sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
      */
     private static class ParameterizedTypeImpl implements ParameterizedType {
+
         private final Type[] actualTypeArguments;
-        private final Class<?>  rawType;
-        private final Type   ownerType;
+        private final Class<?> rawType;
+        private final Type ownerType;
 
         private ParameterizedTypeImpl(Class<?> rawType, Type[] actualTypeArguments, Type ownerType) {
             this.actualTypeArguments = actualTypeArguments;
-            this.rawType             = rawType;
+            this.rawType = rawType;
             this.ownerType = (ownerType != null) ? ownerType : rawType.getDeclaringClass();
             validateConstructorArguments();
         }
@@ -424,7 +468,7 @@ public abstract class Reflector {
         private void validateConstructorArguments() {
             TypeVariable<?>[] formals = rawType.getTypeParameters();
             // check correct arity of actual type args
-            if (formals.length != actualTypeArguments.length){
+            if (formals.length != actualTypeArguments.length) {
                 throw new MalformedParameterizedTypeException();
             }
             for (int i = 0; i < actualTypeArguments.length; i++) {
@@ -467,11 +511,11 @@ public abstract class Reflector {
                 if (this == that) {
                     return true;
                 }
-                Type thatOwner   = that.getOwnerType();
+                Type thatOwner = that.getOwnerType();
                 Type thatRawType = that.getRawType();
                 return Objects.equals(ownerType, thatOwner) &&
-                                Objects.equals(rawType, thatRawType) &&
-                                Arrays.equals(actualTypeArguments, that.getActualTypeArguments());// avoid clone
+                        Objects.equals(rawType, thatRawType) &&
+                        Arrays.equals(actualTypeArguments, that.getActualTypeArguments());// avoid clone
             } else {
                 return false;
             }

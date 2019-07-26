@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 标准POJO对象/Map&lt;String,Object&gt;之间的转化工具类
+ * 标准POJO对象/Map&lt;String,Object&gt;之间的转化工具类. <br>
  *
- * <font color='yellow'>当源对象的值类型与目标对象setter的入参类型不匹配<br>
- * (包括List/Map中元素类型不匹配)时，将尝试进行转换，转换失败则提示异常</font>
+ * <span style='color:yellow'>当源对象的值类型与目标对象setter的入参类型不匹配
+ * (包括List/Map中元素类型不匹配)时，将尝试进行转换，转换失败则提示异常</span>
  * <p>
  * 如果set到目标pojo成员变量的值是List/Map等含有泛型元素的类型，<br>
  * 且源getter返回值List/Map等的元素与目标setter入参List/Map等的元素不匹配时，反射允许set进去，不出异常，<br>
@@ -42,7 +42,7 @@ public abstract class TransformUtils {
     /**
      * 将源对象的成员变量值转递给目标对象<br>
      * 目标对象必须包含源对象中的所有成员变量/键<br>
-     * <font color='yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</font>
+     * <span style='color:yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
      *
      * @param source    源对象 (POJO或Map&lt;String,?&gt;)
      * @param pojoClass pojo的Class
@@ -62,7 +62,7 @@ public abstract class TransformUtils {
     /**
      * 指定源对象的成员变量值以转递给目标对象<br>
      * 目标对象中必须有与源对象相同的这些被指定的成员变量/键<br>
-     * <font color='yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</font>
+     * <span style='color:yellow'>如果源对象的值类型与目标对象setter的入参类型不匹配时，将尝试进行转换，转换失败则提示异常</span>
      *
      * @param source           源对象 (POJO或Map&lt;String,Object&gt;)
      * @param pojoClass        目标Class
@@ -83,13 +83,15 @@ public abstract class TransformUtils {
     }
 
     /**
-     * 将pojo所有可取的数据转到map中
+     * 将pojo所有可取的数据转到map中. <br>
      * 使用时指定目标Map的value类型
      *
-     * @param source      源对象(pojo/map)
-     * @param mapClass    目标Map的类型
-     * @param keyClass    目标Map的key类型
-     * @param valueClass  目标Map的value类型
+     * @param source     源对象(pojo/map)
+     * @param mapClass   目标Map的类型
+     * @param keyClass   目标Map的key类型
+     * @param valueClass 目标Map的value类型
+     * @param <K>        键类型
+     * @param <V>        值类型
      * @return Map&lt;K, V&gt; 如果是Map&lt;String, Object&gt;，则其实例为TransMap
      */
     public static <K, V> Map<K, V> transformToMap(Object source, Class<?> mapClass,
@@ -116,12 +118,14 @@ public abstract class TransformUtils {
      * 指定变量名列表将pojo的部分数据转到map中
      * 使用时指定目标Map的value类型
      *
-     * @param source        源对象(pojo/map)
+     * @param source      源对象(pojo/map)
      * @param mapClass    目标Map的类型
      * @param keyClass    目标Map的key类型
      * @param valueClass  目标Map的value类型
-     * @param onlyNotNull   是否只传递（fieldNames对应值）非null的值
-     * @param fieldNames    要传递的成员变量名列表，如果不指定，则表示所有成员变量名
+     * @param onlyNotNull 是否只传递（fieldNames对应值）非null的值
+     * @param fieldNames  要传递的成员变量名列表，如果不指定，则表示所有成员变量名
+     * @param <K>         键类型
+     * @param <V>         值类型
      * @return Map&lt;String, V&gt; 如果是Map&lt;String, Object&gt;，则其实例为TransMap
      */
     public static <K, V> Map<K, V> transformPartToMap(Object source, Class<?> mapClass,

@@ -9,8 +9,8 @@ import java.util.Map;
 
 /**
  * 代码规范的演示类.
- * <p>
- * <p>
+ * <br>
+ * <br>
  * 注释相关： <br>
  * 1、每个类都要放上相应的注释 <br>
  * 2、且要有@author和@date信息 <br>
@@ -29,18 +29,18 @@ import java.util.Map;
  * 另外，idea对注释这方面的实时检测力度远比eclipse强，代码优化提示丰富，建议都使用idea <br>
  * (idea中，把光标放在类名、成员变量名、方法名上，然后使用快捷键Ctrl+Q就可以显示javadoc的效果， <br>
  * 如果接口实现类上没有javadoc注释而接口上有，那么则继承显示接口上的注释内容)
- * <p>
- * <p>
+ * <br>
+ * <br>
  * 记住：代码一定要写注释，注释不怕多，就怕你不写，最好每个成员变量每个方法每个细节都写上注释，但要整理好，不要乱
- * <p>
- * <p>
+ * <br>
+ * <br>
  * 代码整理相关： <br>
  * 1、统一使用四个空格代替一个tab缩进(IDE都可以设置) <br>
  * 2、if语句和for循环语句等必须要有大括号包裹住代码块(不管代码块是否超过一行) <br>
  * 3、每行尽量不超过120个字符(每个IDE都可以设置自动换行的值)，但为美观需要可以有些许行超过120个字符 (字符长度待定)<br>
  * 4、每行代码之间根据代码逻辑应该有相应的空行，而不是全部压缩在一起没有空行 <br>
- * <p>
- * <p>
+ * <br>
+ * <br>
  * 记住：代码一定要整理(idea -&gt; Ctrl+Alt+L | eclipse -&gt; Ctrl+Shift+F) <br>
  * (因为不同IDE之间的全局整理效果不同，所以尽量先选中自己要整理的代码块再按快捷键整理)
  *
@@ -124,10 +124,11 @@ public class StandardClassDemo {
     //构造方法
 
     /**
-     * 构造方法
-     * <p>
+     * 构造方法.
+     * <br>
      * 不使用成员变量的注入方式，
      * 使用spring官方推荐的构造注入
+     * @param request 请求对象
      */
     //@org.springframework.beans.factory.annotation.Autowired
     public StandardClassDemo(HttpServletRequest request) {

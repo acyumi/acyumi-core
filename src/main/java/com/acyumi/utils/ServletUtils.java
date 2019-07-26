@@ -37,7 +37,7 @@ public abstract class ServletUtils {
      * 使用了nginx的时候对于server端来说，他接到的请求都是来自nginx服务器的， <br>
      * 此时server端默认获取到的ip则是nginx服务器的ip。 <br>
      * 这并不是我们想要的。这个时候就需要添加如下配置： <br> <br>
-     * <p>
+     * </p>
      * proxy_set_header X-Real-IP $remote_addr; <br>
      * proxy_set_header X-Real-Port $remote_port; <br>
      * proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; <br> <br>
@@ -46,7 +46,7 @@ public abstract class ServletUtils {
      * X-Real-IP            客户端ip <br>
      * X-Real-Port          客户端或上一级端口 <br>
      * X-Forwarded-For      包含了客户端和各级代理ip的完整ip链路 <br> <br>
-     * <p>
+     * </p>
      * 其中X-Real-IP是必需的，后两项选填。当只存在一级nginx代理的时候X-Real-IP和X-Forwarded-For是一致的， <br>
      * 而如果通过了多级反向代理的话，X-Forwarded-For的值并不止一个，而是一串IP值，究竟哪个才是真正的用户端的真实IP呢？ <br>
      * 答案是取X-Forwarded-For中第一个非unknown的有效IP字符串。 <br>

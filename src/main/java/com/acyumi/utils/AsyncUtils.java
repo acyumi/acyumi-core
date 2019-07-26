@@ -68,8 +68,8 @@ public class AsyncUtils {
      * 或者自己了解TaskExecutionAutoConfiguration和当前工具类的运行过程再另行处理
      *
      * @return ThreadPoolTaskExecutor
-     * @see org.springframework.boot.autoconfigure.task.TaskExecutionProperties
-     * @see org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
+     * <div style='display: none'>@see org.springframework.boot.autoconfigure.task.TaskExecutionProperties</div>
+     * <div style='display: none'>@see org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration</div>
      */
     @Bean("AsyncUtils_TaskExecutor")
     @Primary
@@ -116,6 +116,8 @@ public class AsyncUtils {
      * 异步执行任务并获取Future对象.
      *
      * @param callable Callable的实现类
+     * @param <T>      泛型类
+     * @return Future
      */
     public static <T> Future<T> asyncSubmit(Callable<T> callable) {
         if (callable == null) {
@@ -138,7 +140,12 @@ public class AsyncUtils {
         new Thread(wrapRunnable(runnable), threadName).start();
     }
 
-    /*** 包装一下runnable，使得run()异常时捕获异常信息并log一下 */
+    /**
+     * 包装一下runnable，使得run()异常时捕获异常信息并log一下
+     *
+     * @param runnable Runnable实例
+     * @return 包装过的Runnable实例
+     */
     private static Runnable wrapRunnable(Runnable runnable) {
         return () -> {
             try {
@@ -149,7 +156,12 @@ public class AsyncUtils {
         };
     }
 
-    /*** 包装一下runnable，使得call()异常时捕获异常信息并log一下 */
+    /**
+     * 包装一下runnable，使得call()异常时捕获异常信息并log一下
+     *
+     * @param callable Callable实例
+     * @return 包装过的Callable实例
+     */
     private static <T> Callable<T> wrapCallable(Callable<T> callable) {
         return () -> {
             try {

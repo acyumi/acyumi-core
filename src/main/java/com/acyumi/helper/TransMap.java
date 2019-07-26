@@ -212,8 +212,9 @@ public class TransMap extends LinkedHashMap<String, Object> {
     /**
      * 获取List类型的value，转换失败则提示异常
      *
-     * @param key 键
-     * @param <E> List的元素类型
+     * @param key       键
+     * @param elemClass List的元素Class
+     * @param <E>       List的元素类型
      * @return List&lt;E&gt;
      */
     @SuppressWarnings("unchecked")
@@ -260,9 +261,11 @@ public class TransMap extends LinkedHashMap<String, Object> {
     /**
      * 获取Map类型的value，转换失败则提示异常
      *
-     * @param key 键
-     * @param <K> 欲获取Map的键类型
-     * @param <V> 欲获取Map的值类型
+     * @param key           键
+     * @param typeReference 类型引用抽象类，此类在方法调用的时候空继承即可 <br>
+     *                      如transMap.getMap("{\"122\":233}", new TypeReference&lt;Map&lt;String, Integer&gt;&gt;(){})
+     * @param <K>           欲获取Map的键类型
+     * @param <V>           欲获取Map的值类型
      * @return Map&lt;K,V&gt;
      */
     @SuppressWarnings("unchecked")
