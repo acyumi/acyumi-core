@@ -8,11 +8,11 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.TypeUtils;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @see org.springframework.util.ReflectionUtils
  * @see org.springframework.beans.BeanUtils
  * @see com.acyumi.utils.TransformUtils
- * <div style='display: none'>@see com.esotericsoftware.reflectasm.MethodAccess</div>
+ * @see MethodAccessor
  */
 public abstract class Reflector {
 
@@ -141,7 +141,7 @@ public abstract class Reflector {
      *
      * @param typeReference 类型引用对象，一般通过使用内部类的方式构建
      * @return Type
-     * @see TypeReference
+     * @see com.fasterxml.jackson.core.type.TypeReference
      * @see com.google.common.reflect.TypeToken
      * @see org.springframework.core.ParameterizedTypeReference
      * @see #makeParamType(Class, Type...)
@@ -157,7 +157,7 @@ public abstract class Reflector {
      * @param parametricClass 参数化类型的母体（寄主）
      * @param elemTypes       参数化类型的元素类型 （寄生体）
      * @return ParameterizedType
-     * @see #getType(TypeReference)
+     * @see #getType(com.fasterxml.jackson.core.type.TypeReference)
      */
     public static ParameterizedType makeParamType(Class<?> parametricClass,
                                                   Type... elemTypes) {
@@ -402,5 +402,120 @@ public abstract class Reflector {
             cpsBuilder.append("empty args");
         }
         return cpsBuilder.toString();
+    }
+
+    /**
+     * sun.reflect包里面的ParameterizedTypeImpl不建议直接使用，所以这里仿造了一个
+     *
+     * @see sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
+     */
+    private static class ParameterizedTypeImpl implements ParameterizedType {
+        private final Type[] actualTypeArguments;
+        private final Class<?>  rawType;
+        private final Type   ownerType;
+
+        private ParameterizedTypeImpl(Class<?> rawType, Type[] actualTypeArguments, Type ownerType) {
+            this.actualTypeArguments = actualTypeArguments;
+            this.rawType             = rawType;
+            this.ownerType = (ownerType != null) ? ownerType : rawType.getDeclaringClass();
+            validateConstructorArguments();
+        }
+
+        private void validateConstructorArguments() {
+            TypeVariable<?>[] formals = rawType.getTypeParameters();
+            // check correct arity of actual type args
+            if (formals.length != actualTypeArguments.length){
+                throw new MalformedParameterizedTypeException();
+            }
+            for (int i = 0; i < actualTypeArguments.length; i++) {
+                // check actuals against formals' bounds
+            }
+        }
+
+        private static ParameterizedTypeImpl make(Class<?> rawType, Type[] actualTypeArguments, Type ownerType) {
+            return new ParameterizedTypeImpl(rawType, actualTypeArguments, ownerType);
+        }
+
+        @Override
+        public Type[] getActualTypeArguments() {
+            return actualTypeArguments.clone();
+        }
+
+        @Override
+        public Class<?> getRawType() {
+            return rawType;
+        }
+
+
+        @Override
+        public Type getOwnerType() {
+            return ownerType;
+        }
+
+        /*
+         * From the JavaDoc for java.lang.reflect.ParameterizedType
+         * "Instances of classes that implement this interface must
+         * implement an equals() method that equates any two instances
+         * that share the same generic type declaration and have equal
+         * type parameters."
+         */
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof ParameterizedType) {
+                // Check that information is equivalent
+                ParameterizedType that = (ParameterizedType) o;
+                if (this == that) {
+                    return true;
+                }
+                Type thatOwner   = that.getOwnerType();
+                Type thatRawType = that.getRawType();
+                return Objects.equals(ownerType, thatOwner) &&
+                                Objects.equals(rawType, thatRawType) &&
+                                Arrays.equals(actualTypeArguments, that.getActualTypeArguments());// avoid clone
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(actualTypeArguments) ^ Objects.hashCode(ownerType) ^ Objects.hashCode(rawType);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (ownerType != null) {
+                if (ownerType instanceof Class) {
+                    sb.append(((Class) ownerType).getName());
+                } else {
+                    sb.append(ownerType.toString());
+                }
+                sb.append("$");
+                if (ownerType instanceof ParameterizedTypeImpl) {
+                    // Find simple name of nested type by removing the
+                    // shared prefix with owner.
+                    String target = ((ParameterizedTypeImpl) ownerType).rawType.getName() + "$";
+                    sb.append(rawType.getName().replace(target, ""));
+                } else {
+                    sb.append(rawType.getSimpleName());
+                }
+            } else {
+                sb.append(rawType.getName());
+            }
+            if (actualTypeArguments != null && actualTypeArguments.length > 0) {
+                sb.append("<");
+                boolean first = true;
+                for (Type t : actualTypeArguments) {
+                    if (!first) {
+                        sb.append(", ");
+                    }
+                    sb.append(t.getTypeName());
+                    first = false;
+                }
+                sb.append(">");
+            }
+            return sb.toString();
+        }
     }
 }
