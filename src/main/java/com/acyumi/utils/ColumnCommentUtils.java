@@ -9,7 +9,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 数据库字段(列)注释工具类
+ * 数据库字段(列)注释工具类.
+ * <p>
+ * 如果不想让IOC容器初始化此工具类，可以在启动类上加注解进行过滤 <br>
+ * 请查看{@link org.springframework.context.annotation.ComponentScan#excludeFilters()} <br>
+ * 和{@link org.springframework.context.annotation.FilterType#ASSIGNABLE_TYPE} <br>
  *
  * @author Mr.XiHui
  * @date 2019/1/3
@@ -43,7 +47,9 @@ public class ColumnCommentUtils {
      * @return columnComment 列的注释，如果查不到则返回字段(列)名
      */
     public static String getColumnComment(String tableName, String columnName) {
-        return COLUMN_COMMENT_MAP.getOrDefault(tableName + "." + columnName, columnName);
+        tableName = tableName.toLowerCase();
+        String key = tableName + "." + columnName.replaceAll("_", "").toUpperCase();
+        return COLUMN_COMMENT_MAP.getOrDefault(key, columnName);
     }
 
     /**
@@ -89,9 +95,7 @@ public class ColumnCommentUtils {
             }
 
             String columnName = rowSet.getString(2);
-            //columnName = columnName.toLowerCase();
-            //COLUMN_COMMENT_MAP.put(tableName + "." + columnName, columnComment);
-            columnName = ParameterUtils.snakeCaseToCamelCase(columnName);
+            columnName = columnName.replaceAll("_", "").toUpperCase();
             COLUMN_COMMENT_MAP.put(tableName + "." + columnName, columnComment);
 
         }, currentDatabase);
