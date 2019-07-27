@@ -1,6 +1,6 @@
 package com.acyumi.annotation;
 
-import com.acyumi.utils.JsonUtils;
+import com.acyumi.util.JsonUtils;
 
 import java.lang.annotation.*;
 

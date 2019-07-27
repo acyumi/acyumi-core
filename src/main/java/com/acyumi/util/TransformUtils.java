@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import com.acyumi.cast.Castor;
 import com.acyumi.helper.TransMap;

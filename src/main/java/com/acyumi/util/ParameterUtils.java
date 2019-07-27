@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import com.acyumi.reflect.Reflector;
 import com.acyumi.reflect.reflectasm.MethodAccessor;

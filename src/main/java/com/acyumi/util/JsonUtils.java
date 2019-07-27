@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import com.acyumi.annotation.JsonIgnoreSpecially;
 import com.acyumi.configuration.converter.MsgDateDeserializer;

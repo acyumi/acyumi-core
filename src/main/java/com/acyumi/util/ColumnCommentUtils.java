@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;

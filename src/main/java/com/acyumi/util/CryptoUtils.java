@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;

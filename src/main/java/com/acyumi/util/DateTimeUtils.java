@@ -1,4 +1,4 @@
-package com.acyumi.utils;
+package com.acyumi.util;
 
 import java.sql.Timestamp;
 import java.text.ParseException;

@@ -1,6 +1,6 @@
 package com.acyumi.configuration.converter;
 
-import com.acyumi.utils.DateTimeUtils;
+import com.acyumi.util.DateTimeUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;

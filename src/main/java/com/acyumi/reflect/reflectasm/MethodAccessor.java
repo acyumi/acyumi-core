@@ -1,7 +1,7 @@
 package com.acyumi.reflect.reflectasm;
 
 import com.acyumi.reflect.Reflector;
-import com.acyumi.utils.ParameterUtils;
+import com.acyumi.util.ParameterUtils;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Label;
 import org.springframework.asm.MethodVisitor;

@@ -3,9 +3,9 @@ package com.acyumi.helper;
 
 import com.acyumi.cast.Castor;
 import com.acyumi.reflect.Reflector;
-import com.acyumi.utils.JsonUtils;
-import com.acyumi.utils.ParameterUtils;
-import com.acyumi.utils.TransformUtils;
+import com.acyumi.util.JsonUtils;
+import com.acyumi.util.ParameterUtils;
+import com.acyumi.util.TransformUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
