@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 抽出来的反射相关的方法
+ * 抽出来的反射相关的方法.
  *
  * @author Mr.XiHui
  * @date 2017/12/5 19:03
@@ -54,7 +54,7 @@ public abstract class Reflector {
     //Parameter.isNamePresent() 来验证参数名是不是可用
 
     /**
-     * 通过targetClass的无参构造实例化对象
+     * 通过targetClass的无参构造实例化对象.
      *
      * @param targetClass 目标Class
      * @param <T>         目标类型
@@ -76,7 +76,7 @@ public abstract class Reflector {
     }
 
     /**
-     * 通过targetClass的有参构造实例化对象
+     * 通过targetClass的有参构造实例化对象.
      *
      * @param targetClass 目标Class
      * @param initArgs    实例化对象需要的入参
@@ -103,7 +103,7 @@ public abstract class Reflector {
     }
 
     /**
-     * 通过实例化对象需要的入参查找对象的有参构造方法
+     * 通过实例化对象需要的入参查找对象的有参构造方法.
      *
      * @param clazz    对象Class
      * @param initArgs 实例化对象需要的入参
@@ -136,7 +136,7 @@ public abstract class Reflector {
     }
 
     /**
-     * 通过类型引用对象获取Type
+     * 通过类型引用对象获取Type. <br>
      * 抛砖引玉，这个方法最大的用处是摆出下面的@see，请去查看吧
      *
      * @param typeReference 类型引用对象，一般通过使用内部类的方式构建
@@ -152,7 +152,7 @@ public abstract class Reflector {
     }
 
     /**
-     * 构造一个参数化类型，用于进行isAssignable判断
+     * 构造一个参数化类型，用于进行isAssignable判断.
      *
      * @param parametricClass 参数化类型的母体（寄主）
      * @param elemTypes       参数化类型的元素类型 （寄生体）
@@ -165,7 +165,7 @@ public abstract class Reflector {
     }
 
     /**
-     * 判断obj是否clazz的实例
+     * 判断obj是否clazz的实例.
      *
      * @param clazz Class对象
      * @param obj   对象实例

@@ -1,7 +1,6 @@
 package com.acyumi.util;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,16 +8,18 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 数据库字段(列)注释工具类.
- * <p>
- * 如果不想让IOC容器初始化此工具类，可以在启动类上加注解进行过滤 <br>
+ * (MySQL)数据库字段(列)注释工具类.
+ * <br>
+ * 如果需要使用此工具类，请在SpringBoot启动类或其他配置类上使用@Import({ColumnCommentUtils.class})
+ * <br><br>
+ * 另外如果不想让IOC容器初始化某个Bean，可以在启动类上加注解进行过滤 <br>
  * 请查看{@link org.springframework.context.annotation.ComponentScan#excludeFilters()} <br>
  * 和{@link org.springframework.context.annotation.FilterType#ASSIGNABLE_TYPE} <br>
  *
  * @author Mr.XiHui
  * @date 2019/1/3
+ * @see org.springframework.context.annotation.Import
  */
-@Component
 public class ColumnCommentUtils {
 
     /**
@@ -30,9 +31,10 @@ public class ColumnCommentUtils {
     private static JdbcTemplate jdbcTemplate;
 
     /**
-     * 注解@Component的使用会使Spring框架自动调用此唯一的构造方法
+     * 注解@Import的使用会使Spring框架自动调用此唯一的构造方法
      *
      * @param jdbcTemplate 自动注入的JdbcTemplate
+     * @see org.springframework.context.annotation.Import
      */
     private ColumnCommentUtils(JdbcTemplate jdbcTemplate) {
         ColumnCommentUtils.jdbcTemplate = jdbcTemplate;
@@ -53,9 +55,13 @@ public class ColumnCommentUtils {
     }
 
     /**
-     * 刷新列名注释缓存
+     * 刷新列名注释缓存.
      */
     public static void refreshColumnComments() {
+
+        if (jdbcTemplate == null) {
+            throw new RuntimeException("ColumnCommentUtils工具类未初始化，请参考工具类注释初始化之后再使用");
+        }
 
         String sqlShowDatabases = "show databases";
         String dbInformationSchema = "information_schema";

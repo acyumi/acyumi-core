@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 参考Nutz的NutMap和Castors，
- * 然后结合阿里FastJson的JSONObject写了此类
+ * 变型Map. <br>
+ * 参考Nutz的NutMap和Castors， <br>
+ * 然后结合阿里FastJson的JSONObject写了此类 <br>
  * 先按需求加功能咯
  *
  * @author Mr.XiHui
@@ -59,7 +60,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取String类型的value，失败(或为null)时返回null
+     * 获取String类型的value，失败(或为null)时返回null.
      *
      * @param key 键
      * @return String
@@ -73,7 +74,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取String类型的value，失败(或为null)时返回defaultValue
+     * 获取String类型的value，失败(或为null)时返回defaultValue.
      *
      * @param key          键
      * @param defaultValue 失败(或为null)时返回此值
@@ -91,7 +92,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Integer类型的value，失败(或为null)时返回null
+     * 获取Integer类型的value，失败(或为null)时返回null.
      *
      * @param key 键
      * @return Integer
@@ -105,7 +106,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Integer类型的value，失败(或为null)时返回defaultValue
+     * 获取Integer类型的value，失败(或为null)时返回defaultValue.
      *
      * @param key          键
      * @param defaultValue 失败(或为null)时返回此值
@@ -123,7 +124,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Long类型的value，失败(或为null)时返回null
+     * 获取Long类型的value，失败(或为null)时返回null.
      *
      * @param key 键
      * @return Long
@@ -137,7 +138,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Long类型的value，失败(或为null)时返回defaultValue
+     * 获取Long类型的value，失败(或为null)时返回defaultValue.
      *
      * @param key          键
      * @param defaultValue 失败(或为null)时返回此值
@@ -155,7 +156,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取boolean类型的value，失败(或为null)时返回false（若有异常则吃掉也返回false）
+     * 获取boolean类型的value，失败(或为null)时返回false（若有异常则吃掉也返回false）.
      * 先将value转成String再忽略大小写匹配"true"，匹配成功返回true
      *
      * @param key 键
@@ -170,7 +171,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取boolean类型的value，为null或异常时返回defaultValue
+     * 获取boolean类型的value，为null或异常时返回defaultValue.
      * 先将value转成String再忽略大小写匹配"true"，匹配成功返回true
      *
      * @param key          键
@@ -189,7 +190,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取List类型的value，转换失败则提示异常
+     * 获取List类型的value，转换失败则提示异常.
      *
      * @param key 键
      * @param <E> List的元素类型
@@ -210,7 +211,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取List类型的value，转换失败则提示异常
+     * 获取List类型的value，转换失败则提示异常.
      *
      * @param key       键
      * @param elemClass List的元素Class
@@ -259,7 +260,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Map类型的value，转换失败则提示异常
+     * 获取Map类型的value，转换失败则提示异常.
      *
      * @param key           键
      * @param typeReference 类型引用抽象类，此类在方法调用的时候空继承即可 <br>
@@ -278,7 +279,7 @@ public class TransMap extends LinkedHashMap<String, Object> {
     }
 
     /**
-     * 获取Map类型的value，转换失败则提示异常
+     * 获取Map类型的value，转换失败则提示异常.
      *
      * @param key 键
      * @return TransMap

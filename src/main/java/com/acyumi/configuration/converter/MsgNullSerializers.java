@@ -9,7 +9,7 @@
 //import java.io.IOException;
 //
 ///**
-// * 各种类型的null值序列化器初始化配置类
+// * 各种类型的null值序列化器初始化配置类.
 // *
 // * @author Mr.XiHui
 // * @date 2019/1/7

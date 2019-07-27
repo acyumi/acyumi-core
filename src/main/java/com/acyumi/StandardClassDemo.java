@@ -12,14 +12,18 @@ import java.util.Map;
  * <br>
  * <br>
  * 注释相关： <br>
- * 1、每个类都要放上相应的注释 <br>
+ * 1、每个类必须放上相应的注释 <br>
  * 2、且要有@author和@date信息 <br>
- * 3、开发时要求在IDE中安装阿里的编码规约插件(idea和eclipse都有相应版本，插件中有些是不符合我们要求的，可以关针对性关掉) <br>
- * 4、类、成员变量和方法上的注释要求是javadoc注释， <br>
+ * 3、开发时要求在IDE中安装阿里的编码规约插件(idea和eclipse都有相应版本，插件中有些是不符合我们要求的，可以针对性地关掉部分) <br>
+ * 4、类、成员变量和方法上的如果有注释，则必须有javadoc注释， <br>
+ * 5、javadoc注释有“概要”和“详细资料”之分 <br>
+ * &nbsp;如何区分？根据我的测试：“概要”就是第一行从开头到英文句号"."结尾的内容， <br>
+ * &nbsp;如果没有这个英文句号"."，那么生成的javadoc就当全部是详细资料，而概要中没有内容，具体效果参考jdk官方文档 <br>
+ * &nbsp;(概要”之说虽然不是很准确，但英语句号"."是关键，我们写注释的时候保证第一行"."前面是简要说明就好了) <br>
  * &nbsp;(注意是以“/**”开头的，而不是以“/*”开头，javadoc注释使用的是html语法)， <br>
  * &nbsp;需要特别说明的是，除了类、成员变量和方法上的说明注释使用javadoc注释之外， <br>
  * &nbsp;其他地方禁止使用javadoc注释，包括： <br>
- * &nbsp;&nbsp; 1)、方法体内部， <br>
+ * &nbsp;&nbsp; 1)、方法体内部 <br>
  * &nbsp;&nbsp; 2)、javadoc与javadoc之上的方法之间的空白处 <br>
  * &nbsp;&nbsp; 3)、javadoc与javadoc之上的成员变量之间的空白处 <br>
  * &nbsp;&nbsp; 4)、javadoc与import代码区域之间的空白处之间的空白处 <br>
@@ -101,7 +105,7 @@ public class StandardClassDemo {
     /*** 私有final成员变量演示1. */
     private final String privateFinalFieldDemo1 = "DEMO3";
     /**
-     * final的成员变量演示2
+     * final的成员变量演示2.
      * <p>
      * spring中注入的HttpServletRequest是单例的代理类，
      * 查看源码可知其最终获取的数据是通过ThreadLocal存放的，
@@ -111,11 +115,11 @@ public class StandardClassDemo {
 
 
     /**
-     * 非static且非final的成员变量演示1
+     * 非static且非final的成员变量演示1.
      */
     private String privateFieldDemo1 = "DEMO4";
     /**
-     * 非static且非final的成员变量演示2
+     * 非static且非final的成员变量演示2.
      */
     private String privateFieldDemo2;
 
@@ -167,7 +171,7 @@ public class StandardClassDemo {
      * */
 
     /**
-     * 添加pojo
+     * 添加pojo.
      *
      * @return 成功添加的结果数
      */
@@ -176,7 +180,7 @@ public class StandardClassDemo {
     }
 
     // /**
-    //  * 批量添加pojo
+    //  * 批量添加pojo.
     //  *
     //  * @param pojos pojo列表
     //  * @return 成功添加的结果数

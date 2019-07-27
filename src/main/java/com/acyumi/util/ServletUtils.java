@@ -16,9 +16,13 @@ import java.util.Map;
  */
 public abstract class ServletUtils {
 
-    /**
-     * 代理请求头名数组，用于获取经过代理的客户端ip.
-     */
+    /*** 未知IP地址 */
+    private static final String IP_UNKNOWN = "unknown";
+
+    /*** 本地IP地址 */
+    private static final String[] IP_LOCAL_HOSTS = {"127.0.0.1", "0:0:0:0:0:0:0:1"};
+
+    /*** 代理请求头名数组，用于获取经过代理的客户端IP. */
     private static final String[] PROXY_HEADER_NAMES = {
             "X-Forwarded-For",
             "HTTP_X_FORWARDED_FOR",
@@ -27,7 +31,6 @@ public abstract class ServletUtils {
             "WL-Proxy-Client-IP",
             "HTTP_CLIENT_IP"
     };
-
 
     /**
      * 获取用户真实IP地址，不使用request.getRemoteAddr();的原因是 <br>
@@ -61,14 +64,14 @@ public abstract class ServletUtils {
         String ip = null;
         for (int i = 0; i < PROXY_HEADER_NAMES.length; i++) {
             ip = request.getHeader(PROXY_HEADER_NAMES[i]);
-            if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+            if (ip != null && ip.length() != 0 && !IP_UNKNOWN.equalsIgnoreCase(ip)) {
                 break;
             }
         }
 
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.length() == 0 || IP_UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
-            if ("127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip)) {
+            if (IP_LOCAL_HOSTS[0].equals(ip) || IP_LOCAL_HOSTS[1].equals(ip)) {
                 //根据网卡取本机配置的IP
                 InetAddress inetAddress = InetAddress.getLoopbackAddress();
                 ip = inetAddress.getHostAddress();
@@ -76,14 +79,14 @@ public abstract class ServletUtils {
         }
 
         //对于通过多个代理的情况，第一个IP为客户端真实IP,多个IP按照','分割
-        if (ip != null && ip.split("\\.").length > 4) {
-            if (ip.indexOf(",") > 0) {
-                ip = ip.substring(0, ip.indexOf(","));
+        if (ip != null) {
+            int commaIndex = ip.indexOf(",");
+            if (commaIndex > 0) {
+                ip = ip.substring(0, commaIndex);
             }
         }
         return ip;
     }
-
 
     /**
      * 从request中获取请求头信息的Map.
@@ -91,7 +94,7 @@ public abstract class ServletUtils {
      * @param request Http请求对象
      * @return 请求头信息的Map
      */
-    public Map<String, String> getRequestHeaderMap(HttpServletRequest request) {
+    public static Map<String, String> getRequestHeaderMap(HttpServletRequest request) {
         Map<String, String> requestHeaderMap = new LinkedHashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
@@ -108,7 +111,7 @@ public abstract class ServletUtils {
      * @param response http响应对象
      * @return 响应头信息的Map
      */
-    public Map<String, String> getResponseHeaderMap(HttpServletResponse response) {
+    public static Map<String, String> getResponseHeaderMap(HttpServletResponse response) {
         Map<String, String> requestHeaderMap = new LinkedHashMap<>();
         Collection<String> headerNames = response.getHeaderNames();
         for (String headerName : headerNames) {

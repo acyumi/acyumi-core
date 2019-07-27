@@ -10,12 +10,12 @@ import java.util.concurrent.*;
 
 
 /**
- * 异步工具类
+ * 异步工具类. <br>
  *
  * @author Mr.XiHui
  * @date 2017/9/21 10:15
+ * @see org.springframework.context.annotation.Import
  */
-//@Component
 public class AsyncUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncUtils.class);
@@ -62,14 +62,17 @@ public class AsyncUtils {
     }
 
     /**
-     * 用当前工具类的线程池覆盖TaskExecutionAutoConfiguration的配置 <br>
-     * 因此，application.properties中spring.task.execution开头的配置将无效 <br>
-     * 如果有使用spring.task.execution开头的这些配置，请去掉当前工具类的@Component注解 <br>
+     * 获取线程池执行器. <br>
+     * 如果想用当前工具类的线程池覆盖TaskExecutionAutoConfiguration的配置 <br>
+     * 则可以在SpringBoot启动类或其他配置类上使用@Import({AsyncUtils.class}) <br>
+     * 此时，application.properties中spring.task.execution开头的配置将无效 <br>
+     * 如果想使用spring.task.execution开头的这些配置，请不要把当前工具类加载到IOC容器中 <br>
      * 或者自己了解TaskExecutionAutoConfiguration和当前工具类的运行过程再另行处理
      *
      * @return ThreadPoolTaskExecutor
-     * <div style='display: none'>@see org.springframework.boot.autoconfigure.task.TaskExecutionProperties</div>
-     * <div style='display: none'>@see org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration</div>
+     * @see org.springframework.context.annotation.Import
+     * <div>@see org.springframework.boot.autoconfigure.task.TaskExecutionProperties</div>
+     * <div>@see org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration</div>
      */
     @Bean("AsyncUtils_TaskExecutor")
     @Primary
@@ -78,9 +81,9 @@ public class AsyncUtils {
     }
 
     /**
-     * 关闭线程池
-     * 停止接收外部submit的任务
-     * 内部正在跑的任务和队列里等待的任务，会执行完
+     * 关闭线程池. <br>
+     * 停止接收外部submit的任务 <br>
+     * 内部正在跑的任务和队列里等待的任务，会执行完 <br>
      * 等到第二步完成后，才真正停止
      */
     public static void shutdownExecutor() {
@@ -141,7 +144,7 @@ public class AsyncUtils {
     }
 
     /**
-     * 包装一下runnable，使得run()异常时捕获异常信息并log一下
+     * 包装一下runnable，使得run()异常时捕获异常信息并log一下.
      *
      * @param runnable Runnable实例
      * @return 包装过的Runnable实例
@@ -157,7 +160,7 @@ public class AsyncUtils {
     }
 
     /**
-     * 包装一下runnable，使得call()异常时捕获异常信息并log一下
+     * 包装一下runnable，使得call()异常时捕获异常信息并log一下.
      *
      * @param callable Callable实例
      * @return 包装过的Callable实例

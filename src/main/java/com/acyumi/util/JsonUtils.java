@@ -31,17 +31,17 @@ import java.time.LocalTime;
 import java.util.*;
 
 /**
- * Json工具类.
- * 使用的是jackson的ObjectMapper进行对象与json字符串之间的序列化与反序列化
+ * Json工具类. <br>
+ * 使用的是jackson的ObjectMapper进行对象与json字符串之间的序列化与反序列化 <br>
  *
  * @author Mr.XiHui
- * @since 2018/4/14
+ * @date 2018/4/14
+ * @see org.springframework.context.annotation.Import
  */
-//@Component
 public class JsonUtils {
 
     /**
-     * 为使{@link #toJsonIgnoreSpeciallyStr(Object)}方法通过注解{@link JsonIgnoreSpecially}
+     * 为使{@link #toJsonIgnoreSpeciallyStr(Object)}方法通过注解{@link JsonIgnoreSpecially} <br>
      * 过滤属性而定义的Bean序列化修改器
      *
      * @see JsonIgnoreSpeciallyBeanSerializerModifier
@@ -128,20 +128,26 @@ public class JsonUtils {
     }
 
     /**
-     * 利用@Component注解，可以在启动初始化项目时使Spring强制调用此私有构造给OBJECT_MAPPER重新赋值
-     * 注意@Configuration不能达到此效果，使用@Configuration启动项目时如果没有public构造方法会报错
-     * 如此做的目的是：
-     * 如果将此工具类放到Spring容器中使用，那么将使用Spring初始化的objectMapper代替静态生成的OBJECT_MAPPER
-     * 若不需要Spring替换OBJECT_MAPPER，去掉@Component注解即可
+     * 私有构造. <br>
+     * 利用{@link org.springframework.stereotype.Component} <br>
+     * 或者{@link org.springframework.context.annotation.Import}注解， <br>
+     * 可以在启动初始化项目时使Spring强制调用此私有构造给OBJECT_MAPPER重新赋值 <br><br>
+     * 注意{@link org.springframework.context.annotation.Configuration}不能达到此效果，<br>
+     * 使用@Configuration启动项目时如果没有public构造方法会报错 <br><br>
+     * 如此做的目的是： <br>
+     * 如果将此工具类放到Spring容器中使用，那么将使用Spring初始化的objectMapper代替静态生成的OBJECT_MAPPER <br>
+     * <br>
+     * 若需要Spring替换OBJECT_MAPPER，则在SpringBoot启动类或其他配置类上使用@Import({JsonUtils.class})即可
      *
      * @param objectMapper Spring容器自动注入
+     * @see org.springframework.context.annotation.Import
      */
     private JsonUtils(ObjectMapper objectMapper) {
         OBJECT_MAPPER = objectMapper;
     }
 
     /**
-     * 可使用此方法获取已经初始化好的ObjectMapper对象来调用ObjectMapper的其他方法
+     * 可使用此方法获取已经初始化好的ObjectMapper对象来调用ObjectMapper的其他方法.
      *
      * @return ObjectMapper
      */
@@ -150,7 +156,7 @@ public class JsonUtils {
     }
 
     /**
-     * 序列化对象成Json字符串
+     * 序列化对象成Json字符串.
      *
      * @param obj 对象
      * @return 未格式化的Json字符串
@@ -161,8 +167,9 @@ public class JsonUtils {
     }
 
     /**
-     * {@link #toJsonStr(Object)}和{@link #toPrettyJsonStr(Object)}序列化对象时，
-     * 得到的jsonStr极有可能会包上一层(\"\")，所以增加此方法来去除头尾双引号
+     * 去除json字符串的头尾双引号. <br>
+     * {@link #toJsonStr(Object)}和{@link #toPrettyJsonStr(Object)}序列化对象时， <br>
+     * 得到的jsonStr极有可能会包上一层(\"\")，所以增加此方法来去除头尾双引号 <br>
      * 如"\"2018-05-01\"".equals(JsonUtils.toJsonStr(LocalDate.of(2018, 5, 1)))是true
      *
      * @param jsonStr json字符串
@@ -180,7 +187,7 @@ public class JsonUtils {
     }
 
     /**
-     * 序列化对象成格式化好的Json字符串
+     * 序列化对象成格式化好的Json字符串.
      *
      * @param obj 对象
      * @return 格式化好的Json字符串
@@ -193,8 +200,8 @@ public class JsonUtils {
     /**
      * 序列化对象成通过@JsonIgnoreSpecially注解过滤过属性的Json字符串.
      * <br>
-     * 通过在对象的成员变量上声明注解{@link JsonIgnoreSpecially}
-     * 再调用此方法以在不影响 “框架” 和 {@link #toJsonStr(Object)} 的基础上
+     * 通过在对象的成员变量上声明注解{@link JsonIgnoreSpecially} <br>
+     * 再调用此方法以在不影响 “框架” 和 {@link #toJsonStr(Object)} 的基础上 <br>
      * 达到输出过滤了指定属性的Json字符串的效果
      *
      * @param obj 对象
@@ -227,7 +234,7 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成对象
+     * 解析Json字符串转成对象.
      *
      * @param jsonStr Json字符串
      * @param clazz   返回值Class
@@ -283,7 +290,7 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成泛型类或复杂参数型类对象 <br>
+     * 解析Json字符串转成泛型类或复杂参数型类对象. <br>
      * 可解析成类似以下对象 <br>
      * RequestMsg&lt;AddEnterpriseInVo&gt; msg = JsonUtils.parseParametricObj("{}", RequestMsg.class,
      * AddEnterpriseInVo.class); <br>
@@ -345,7 +352,7 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成TransMap
+     * 解析Json字符串转成TransMap.
      *
      * @param jsonStr Json字符串
      * @return TransMap
@@ -366,7 +373,7 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成List
+     * 解析Json字符串转成List.
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
@@ -392,7 +399,7 @@ public class JsonUtils {
     }
 
     /**
-     * 解析Json字符串转成Set
+     * 解析Json字符串转成Set.
      *
      * @param jsonStr   Json字符串
      * @param elemClass 元素Class
@@ -470,7 +477,7 @@ public class JsonUtils {
     }
 
     /**
-     * 生成clazz和ignoreProperties对应的ObjectMapper
+     * 生成clazz和ignoreProperties对应的ObjectMapper.
      *
      * @param clazz            被过滤属性的载体对象
      * @param ignoreProperties 被过滤的属性列表
@@ -485,7 +492,7 @@ public class JsonUtils {
     }
 
     /**
-     * 生成ignoreProperties对应的FilterProvider
+     * 生成ignoreProperties对应的FilterProvider.
      *
      * @param ignoreProperties 属性过滤列表
      * @return FilterProvider
@@ -499,7 +506,7 @@ public class JsonUtils {
     }
 
     /**
-     * 序列化Bean的BeanPropertyWriter修改器
+     * 序列化Bean的BeanPropertyWriter修改器. <br>
      * 目的是进行属性过滤操作
      *
      * @author Mr.XiHui

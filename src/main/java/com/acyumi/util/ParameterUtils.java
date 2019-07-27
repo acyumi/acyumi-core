@@ -341,7 +341,8 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 因为Arrays.asList得到的List是不支持增删的，
+     * 数组转成可编辑的List. <br>
+     * 因为Arrays.asList得到的List是不支持增删的， <br>
      * 所以另外写了一个数组转List的实现
      *
      * @param t   元素对象
@@ -427,7 +428,7 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 善用lambda表达式遍历. <br>
+     * 善用lambda表达式遍历(含有break功能). <br>
      * 此方法提供break功能，即{@link BiFunction#apply}的返回值是true则执行break跳出循环 <br>
      * 如果是集合或数组，则给{@link BiFunction#apply}方法传递的是元素和当前遍历到的元素位置 <br>
      * 如果是Map，则给{@link BiFunction#apply}方法传递的是entry和当前遍历到的entry位置 <br>
@@ -515,7 +516,7 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 获取 集合/数组/Map/其他Iterable 的大小，即元素个数
+     * 获取 集合/数组/Map/其他Iterable 的大小，即元素个数.
      *
      * @param obj 集合/数组/Map/其他Iterable
      * @return 元素个数
@@ -634,7 +635,7 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 将obj对象的字符串成员变量或value做非空判断，如果为空则替换成null <br>
+     * 将obj对象的字符串成员变量或value做非空判断，如果为空则替换成null. <br>
      * 如果obj是集合或数组或map，只操作其第一层元素或value的String
      *
      * @param obj 需要替换空字符串成员变量为null的对象
@@ -717,7 +718,7 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 把pojo指定(include)的或所有的fields的值设置成null
+     * 把pojo指定(include)的或所有的fields的值设置成null.
      *
      * @param obj           pojo对象
      * @param includeFields 被包含成员变量可变长度实例
@@ -742,7 +743,7 @@ public abstract class ParameterUtils {
     }
 
     /**
-     * 把pojo指定之外(exclude)的或所有的fields的值设置成null
+     * 把pojo指定之外(exclude)的或所有的fields的值设置成null.
      *
      * @param obj           pojo对象
      * @param excludeFields 被排除的成员变量可变长度实例
@@ -770,6 +771,7 @@ public abstract class ParameterUtils {
     }
 
     /**
+     * 计算Map的容量. <br>
      * 只要它的增长不超过预期的大小，并且负载因子&gt;=它的默认值(0.75)， <br>
      * 则返回足以防止进行Map大小调整的容量
      *

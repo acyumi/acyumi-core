@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- * 动态格式日期反序列化对象
+ * 动态格式日期反序列化对象. <br>
  * 从内部类抽取出来复用
  *
  * @author Mr.XiHui
@@ -21,7 +21,7 @@ public class MsgDateDeserializer extends DateDeserializers.DateDeserializer {
     private static final long serialVersionUID = -8992816734856388583L;
 
     /**
-     * 用友云平台返回的非法日期格式，在这里做适配处理
+     * 用友云平台返回的非法日期格式，在这里做适配处理.
      */
     private static final String YYC_INVALID_DATE_STRING = "-";
 
