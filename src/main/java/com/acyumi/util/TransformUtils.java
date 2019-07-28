@@ -517,11 +517,11 @@ public abstract class TransformUtils {
         if (sourceAccessor != null) {
             Integer getterIndex = sourceAccessor.getterIndex(keyOrFieldName);
             if (getterIndex != null) {
-                getterGenericReturnType = sourceAccessor.getGenericReturnTypes()[getterIndex];
+                getterGenericReturnType = sourceAccessor.getGenericReturnType(getterIndex);
             }
         }
         value = trans2SetterParameter(keyOrFieldName, value, getterGenericReturnType,
-                targetAccessor.getGenericParameterTypes()[setterIndex][0]);
+                targetAccessor.getGenericParameterType(setterIndex, 0));
 
         try {
             targetAccessor.invoke(targetPojo, setterIndex, value);
@@ -529,8 +529,8 @@ public abstract class TransformUtils {
             throw new IllegalArgumentException(
                     String.format("方法(%s.%s(%s))的入参(%s)不匹配",
                             value.getClass().getName(),
-                            targetAccessor.getMethodNames()[setterIndex],
-                            StringUtils.arrayToDelimitedString(targetAccessor.getParameterTypes()[setterIndex], ","),
+                            targetAccessor.getMethodName(setterIndex),
+                            StringUtils.arrayToDelimitedString(targetAccessor.getParameterTypes(setterIndex), ","),
                             value.getClass().getName()),
                     e);
         }

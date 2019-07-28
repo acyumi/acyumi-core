@@ -1,6 +1,7 @@
 package com.acyumi.reflect.reflectasm;
 
 import com.acyumi.reflect.Reflector;
+import com.acyumi.util.JsonUtils;
 import com.acyumi.util.ParameterUtils;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Label;
@@ -265,7 +266,7 @@ public abstract class MethodAccessor {
      * @return int {@link #fieldNames}中的方法所对应的索引
      */
     public int getIndex(String methodName) {
-        for (int i = 0, n = methodNames.length; i < n; i++) {
+        for (int i = 0; i < methodNames.length; i++) {
             if (methodNames[i].equals(methodName)) {
                 return i;
             }
@@ -281,7 +282,7 @@ public abstract class MethodAccessor {
      * @return int {@link #fieldNames}中的方法所对应的索引
      */
     public int getIndex(String methodName, Class... paramTypes) {
-        for (int i = 0, n = methodNames.length; i < n; i++) {
+        for (int i = 0; i < methodNames.length; i++) {
             if (methodNames[i].equals(methodName) && Arrays.equals(paramTypes, parameterTypes[i])) {
                 return i;
             }
@@ -298,7 +299,7 @@ public abstract class MethodAccessor {
      * @return int {@link #fieldNames}中的方法所对应的索引
      */
     public int getIndex(String methodName, int paramsCount) {
-        for (int i = 0, n = methodNames.length; i < n; i++) {
+        for (int i = 0; i < methodNames.length; i++) {
             if (methodNames[i].equals(methodName) && parameterTypes[i].length == paramsCount) {
                 return i;
             }
@@ -307,51 +308,113 @@ public abstract class MethodAccessor {
                 + methodName + " with " + paramsCount + " params.");
     }
 
+    /**
+     * 获取方法名
+     *
+     * @param index 索引
+     * @return 方法名
+     */
+    public String getMethodName(int index) {
+        return methodNames[index];
+    }
+
+    /**
+     * 获取方法参数类型
+     *
+     * @param pIndex 一维索引
+     * @param sIndex 二维索引
+     * @return 方法参数类型
+     */
+    public Class<?> getParameterType(int pIndex, int sIndex) {
+        return parameterTypes[pIndex][sIndex];
+    }
+
+    /**
+     * 获取方法参数类型数组
+     *
+     * @param pIndex 一维索引
+     * @return 方法参数类型数组
+     */
+    public Class[] getParameterTypes(int pIndex) {
+        return parameterTypes[pIndex].clone();
+    }
+
+    /**
+     * 获取方法返回值类型
+     *
+     * @param index 索引
+     * @return 方法返回值类型
+     */
+    public Class<?> getReturnTypes(int index) {
+        return returnTypes[index];
+    }
+
+    /**
+     * 获取方法泛型参数类型
+     *
+     * @param pIndex 一维索引
+     * @param sIndex 二维索引
+     * @return 方法泛型参数类型
+     */
+    public java.lang.reflect.Type getGenericParameterType(int pIndex, int sIndex) {
+        return genericParameterTypes[pIndex][sIndex];
+    }
+
+    /**
+     * 获取方法泛型参数类型数组
+     *
+     * @param pIndex 一维索引
+     * @return 方法泛型参数类型数组
+     */
+    public java.lang.reflect.Type[] getGenericParameterTypes(int pIndex) {
+        return genericParameterTypes[pIndex].clone();
+    }
+
+    /**
+     * 获取方法泛型返回值类型
+     *
+     * @param index 索引
+     * @return 方法泛型返回值类型
+     */
+    public java.lang.reflect.Type getGenericReturnType(int index) {
+        return genericReturnTypes[index];
+    }
+
     public String[] getMethodNames() {
-        String[] dest = new String[methodNames.length];
-        System.arraycopy(methodNames, 0, dest, 0, methodNames.length);
-        return dest;
+        return methodNames.clone();
+        //String[] dest = new String[methodNames.length];
+        //System.arraycopy(methodNames, 0, dest, 0, methodNames.length);
+        //return dest;
         //return methodNames;
         //return Arrays.copyOf(methodNames, methodNames.length);
     }
 
     public Class[][] getParameterTypes() {
-        Class[][] dest = new Class[parameterTypes.length][];
-        System.arraycopy(parameterTypes, 0, dest, 0, parameterTypes.length);
-        return dest;
-        //return parameterTypes;
+        return parameterTypes.clone();
     }
 
     public Class[] getReturnTypes() {
-        Class[] dest = new Class[returnTypes.length];
-        System.arraycopy(returnTypes, 0, dest, 0, returnTypes.length);
-        return dest;
-        //return returnTypes;
+        return returnTypes.clone();
     }
 
     public java.lang.reflect.Type[][] getGenericParameterTypes() {
-        java.lang.reflect.Type[][] dest = new java.lang.reflect.Type[genericParameterTypes.length][];
-        System.arraycopy(genericParameterTypes, 0, dest, 0, genericParameterTypes.length);
-        return dest;
-        //return genericParameterTypes;
+        return genericParameterTypes.clone();
     }
 
     public java.lang.reflect.Type[] getGenericReturnTypes() {
-        java.lang.reflect.Type[] dest = new java.lang.reflect.Type[genericReturnTypes.length];
-        System.arraycopy(genericReturnTypes, 0, dest, 0, genericReturnTypes.length);
-        return dest;
-        //return genericReturnTypes;
+        return genericReturnTypes.clone();
     }
 
     public Map<String, Integer> getMethodNameIndexMap() {
         return methodNameIndexMap;
     }
 
+    public int getFieldNamesLength() {
+        return fieldNames.length;
+    }
+
     public String[] getFieldNames() {
-        String[] dest = new String[fieldNames.length];
-        System.arraycopy(fieldNames, 0, dest, 0, fieldNames.length);
-        return dest;
-        //return fieldNames;
+        return fieldNames.clone();
     }
 
     /**
@@ -868,5 +931,10 @@ public abstract class MethodAccessor {
             return methodNameIndexMap.get(prefix + fieldName);
         }
         return index;
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtils.toJsonStr(this);
     }
 }

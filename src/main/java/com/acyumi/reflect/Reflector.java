@@ -34,7 +34,10 @@ public abstract class Reflector {
     public static final String GET_CLASS_METHOD_NAME = "getClass";
     public static final byte[] EMPTY_BYTES = {};
 
-    //储存pojo源对象和目标对象的getter和setter方法
+    /**
+     * asm方法操作器的缓存. <br>
+     * 储存pojo源对象和目标对象的getter和setter方法
+     */
     //private static final Map<Class<?>, MethodAccessor> METHOD_ACCESSOR_CACHE = new ConcurrentHashMap<>();
     private static final Cache<Class<?>, MethodAccessor> METHOD_ACCESSOR_CACHE = CacheBuilder.newBuilder()
             //设置cache的初始大小为64，要合理设置该值
@@ -48,10 +51,14 @@ public abstract class Reflector {
             //构建guava的纯java内存cache实例
             .build();
 
-    //储存方法的参数名，LocalVariableTableParameterNameDiscoverer中有相应的参数名缓存
+    /**
+     * 参数名缓存. <br>
+     * LocalVariableTableParameterNameDiscoverer中有相应的参数名缓存 <br>
+     * LocalVariableTableParameterNameDiscoverer其实也是用asm框架来实现的 <br>
+     * jdk8可以在编译时加-parameters参数达到在字节码中保留参数名的效果 <br>
+     * {@link Parameter#isNamePresent}可以用来验证参数名是不是可用
+     */
     private static final ParameterNameDiscoverer PARAMETER_NAME_CACHE = new LocalVariableTableParameterNameDiscoverer();
-    //jdk8可以在编译时加-parameters参数达到在字节码中保留参数名的效果
-    //Parameter.isNamePresent() 来验证参数名是不是可用
 
     /**
      * 通过targetClass的无参构造实例化对象.
