@@ -3,9 +3,9 @@ package com.acyumi.spring.cache;
 import org.redisson.api.RedissonClient;
 import org.redisson.spring.cache.CacheConfig;
 import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.AbstractCacheResolver;
 import org.springframework.cache.interceptor.BasicOperation;
+import org.springframework.cache.interceptor.CacheEvictOperation;
 import org.springframework.cache.interceptor.CacheOperationInvocationContext;
 
 import java.util.ArrayList;
@@ -30,6 +30,13 @@ import java.util.concurrent.ConcurrentMap;
  * 一旦该次清理数量少于上次清理数量，时间间隔将增加1.5倍。 <br>
  * <br>
  * 通过相关测试，由于不是redis原生支持，所以通常会有秒级别的延迟，要求不高可以使用{@link org.redisson.api.RMapCache}。
+ * <br>
+ * <br>
+ * 如果使用原生的SpringCache注解来添加缓存，则依Redisson默认使用Hash结构来缓存数据 <br>
+ * 否则将根据以下属性来决定redis缓存结构 <br>
+ * {@link com.acyumi.annotation.ExpireKeyCacheable#usingHash()}
+ *  或 {@link com.acyumi.annotation.ExpireKeyCachePut#usingHash()}
+ *
  *
  * @author Mr.XiHui
  * @date 2019/9/5
@@ -39,31 +46,92 @@ public class ExpireKeyRedissonCacheResolver extends AbstractCacheResolver {
 
     public static final String EXPIRE_KEY_REDISSON_CACHE_RESOLVER_BEAN_NAME = "acyumiExpireKeyRedissonCacheResolver";
 
-    protected final ConcurrentMap<String, ExpireKeyCache> expireKeyCacheInstantMap = new ConcurrentHashMap<>();
+    /**
+     * ExpireKeyCache数组的Map代码缓存
+     * key: cacheName
+     * value: ExpireKeyCache[]，第一索引位为ExpireKeyRedissonBucketCache，第二索引位为ExpireKeyRedissonMapCache
+     */
+    protected final ConcurrentMap<String, ExpireKeyCache[]> expireKeyCacheInstantsMap = new ConcurrentHashMap<>(256);
     protected final RedissonClient redissonClient;
     protected final Map<String, CacheConfig> cacheConfigMap;
     private boolean allowNullValues = true;
+    private long defaultExpire;
+    private long defaultMaxIdleTime;
 
-    public ExpireKeyRedissonCacheResolver(CacheManager cacheManager, RedissonClient redissonClient,
+    public ExpireKeyRedissonCacheResolver(RedissonClient redissonClient,
                                           Map<String, CacheConfig> cacheConfigMap) {
-        super(cacheManager);
+        super(null);
         this.redissonClient = redissonClient;
         this.cacheConfigMap = cacheConfigMap;
     }
 
     @Override
+    public void afterPropertiesSet() {
+        //父类中会校验CacheManager，我们现在不需要CacheManager，所以这里啥都不做也不调用父类的方法
+    }
+
+    @Override
     public Collection<? extends Cache> resolveCaches(CacheOperationInvocationContext<?> context) {
+
+        Collection<String> cacheNames = getCacheNames(context);
+        if (cacheNames == null) {
+            return Collections.emptyList();
+        }
 
         BasicOperation operation = context.getOperation();
         if (operation instanceof ExpireKeyCacheOperation) {
-            Collection<String> cacheNames = getCacheNames(context);
-            if (cacheNames == null) {
-                return Collections.emptyList();
-            }
-            return getExpireKeyCaches(context, cacheNames);
+            return getExpireKeyCaches(context, (ExpireKeyCacheOperation) operation, cacheNames);
         }
 
-        return super.resolveCaches(context);
+        return getCachesForNativeAnnotation(context, cacheNames);
+    }
+
+    /**
+     * 获取拓展过期时间的{@link ExpireKeyCache}缓存对象列表
+     *
+     * @param context                 CacheOperationInvocationContext
+     * @param expireKeyCacheOperation ExpireKeyCacheOperation
+     * @param cacheNames              缓存名列表
+     * @return {@link ExpireKeyCache}缓存对象列表
+     */
+    protected Collection<? extends ExpireKeyCache> getExpireKeyCaches(CacheOperationInvocationContext<?> context,
+                                                                      ExpireKeyCacheOperation expireKeyCacheOperation,
+                                                                      Collection<String> cacheNames) {
+
+        boolean usingHash = expireKeyCacheOperation.isUsingHash();
+        Collection<ExpireKeyCache> expireKeyCaches = new ArrayList<>(cacheNames.size());
+
+        for (String cacheName : cacheNames) {
+            ExpireKeyCache[] ekcs = expireKeyCacheInstantsMap.computeIfAbsent(cacheName, cn -> new ExpireKeyCache[2]);
+            ExpireKeyCache ekc;
+            if (usingHash) {
+                ekc = ekcs[1];
+                if (ekc == null) {
+                    ekc = new ExpireKeyRedissonMapCache(
+                            redissonClient.getMapCache(cacheName),
+                            cacheConfigMap.computeIfAbsent(cacheName,
+                                    k -> new CacheConfig(defaultExpire, defaultMaxIdleTime)),
+                            allowNullValues
+                    );
+                    ekcs[1] = ekc;
+                }
+                expireKeyCaches.add(ekc);
+            } else {
+                ekc = ekcs[0];
+                if (ekc == null) {
+                    ekc = new ExpireKeyRedissonBucketCache(
+                            cacheName, redissonClient,
+                            cacheConfigMap.computeIfAbsent(cacheName,
+                                    k -> new CacheConfig(defaultExpire, defaultMaxIdleTime)),
+                            allowNullValues
+                    );
+                    ekcs[0] = ekc;
+                }
+                expireKeyCaches.add(ekc);
+            }
+        }
+
+        return expireKeyCaches;
     }
 
     /**
@@ -73,23 +141,38 @@ public class ExpireKeyRedissonCacheResolver extends AbstractCacheResolver {
      * @param cacheNames 缓存名列表
      * @return {@link ExpireKeyCache}缓存对象列表
      */
-    protected Collection<? extends ExpireKeyCache> getExpireKeyCaches(CacheOperationInvocationContext<?> context,
-                                                                      Collection<String> cacheNames) {
+    protected Collection<Cache> getCachesForNativeAnnotation(CacheOperationInvocationContext<?> context,
+                                                             Collection<String> cacheNames) {
 
-        Collection<ExpireKeyCache> expireKeyCaches = new ArrayList<>(cacheNames.size());
+        BasicOperation operation = context.getOperation();
+
+        //如果是CacheEvict，那么一个cacheName可能对应两个Cache（即ExpireKeyRedissonBucketCache和ExpireKeyRedissonMapCache）
+        //如果是Cacheable或CachePut，那么一个cacheName只对应一个Cache（即ExpireKeyRedissonMapCache）
+        //意思是如果使用原生的SpringCache注解来添加缓存，则使用Hash结构来缓存数据
+        boolean isCacheEvict = operation instanceof CacheEvictOperation;
+
+        Collection<Cache> result = new ArrayList<>(isCacheEvict ? cacheNames.size() << 1 : cacheNames.size());
 
         for (String cacheName : cacheNames) {
-            ExpireKeyCache expireKeyCache = expireKeyCacheInstantMap.computeIfAbsent(cacheName,
-                    cn -> new ExpireKeyRedissonCache(
-                            redissonClient.getMapCache(cacheName),
-                            cacheConfigMap.computeIfAbsent(cacheName, k -> new CacheConfig()),
-                            allowNullValues
-                    )
-            );
-            expireKeyCaches.add(expireKeyCache);
+            ExpireKeyCache[] ekcs = expireKeyCacheInstantsMap.computeIfAbsent(cacheName, cn -> new ExpireKeyCache[2]);
+            ExpireKeyCache ekc = ekcs[1];
+            if (ekc == null) {
+                ekc = new ExpireKeyRedissonMapCache(
+                        redissonClient.getMapCache(cacheName),
+                        cacheConfigMap.computeIfAbsent(cacheName,
+                                k -> new CacheConfig(defaultExpire, defaultMaxIdleTime)),
+                        allowNullValues
+                );
+                ekcs[1] = ekc;
+            }
+            result.add(ekc);
+
+            if (isCacheEvict && (ekc = ekcs[0]) != null) {
+                result.add(ekc);
+            }
         }
 
-        return expireKeyCaches;
+        return result;
     }
 
     @Override
@@ -106,5 +189,13 @@ public class ExpireKeyRedissonCacheResolver extends AbstractCacheResolver {
      */
     public void setAllowNullValues(boolean allowNullValues) {
         this.allowNullValues = allowNullValues;
+    }
+
+    public void setDefaultExpire(long defaultExpire) {
+        this.defaultExpire = defaultExpire;
+    }
+
+    public void setDefaultMaxIdleTime(long defaultMaxIdleTime) {
+        this.defaultMaxIdleTime = defaultMaxIdleTime;
     }
 }

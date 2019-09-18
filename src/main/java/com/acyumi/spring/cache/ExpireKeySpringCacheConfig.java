@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheAnnotationParser;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.interceptor.CacheResolver;
@@ -35,7 +34,9 @@ public class ExpireKeySpringCacheConfig extends CachingConfigurerSupport impleme
 
     /*** slf4j的logger对象. */
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final RedissonClient redissonClient;
+    //private final RedissonClient redissonClient;
+    /*** 缓存解析器. */
+    private final CacheResolver cacheResolver;
 
     /**
      * Redisson的SpringCache缓存默认使用Hash类型作为{@link org.springframework.cache.Cache}，<br>
@@ -59,13 +60,16 @@ public class ExpireKeySpringCacheConfig extends CachingConfigurerSupport impleme
     private ResourceLoader resourceLoader;
 
     public ExpireKeySpringCacheConfig(RedissonClient redissonClient) {
-        this.redissonClient = redissonClient;
+        //this.redissonClient = redissonClient;
+        this.cacheResolver = new ExpireKeyRedissonCacheResolver(redissonClient, readCacheConfigMap());
         if (logger.isInfoEnabled()) {
             logger.info("==================================================================");
             logger.info("启用拓展过期时间的SpringCache配置类");
             logger.info("启用注解 @ExpireKeyCacheable 和 @ExpireKeyCachePut");
             logger.info("注入BeanType: {}", RedissonClient.class.getName());
-            logger.info("同时导入配置: {}", ExpireKeyProxyCachingConfiguration.class.getName());
+            logger.info("初始化BeanType: {}, BeanName: {}", ExpireKeyRedissonCacheResolver.class.getName(),
+                    ExpireKeyRedissonCacheResolver.EXPIRE_KEY_REDISSON_CACHE_RESOLVER_BEAN_NAME);
+            logger.info("导入配置: {}", ExpireKeyProxyCachingConfiguration.class.getName());
             logger.info("==================================================================");
         }
     }
@@ -76,20 +80,14 @@ public class ExpireKeySpringCacheConfig extends CachingConfigurerSupport impleme
     }
 
     /**
-     * 初始化使用Redisson的Spring缓存管理器Bean
+     * 因为这是重写的方法且同时受@Bean影响，这里会被调用两次，所以不在这里进行new操作
      *
-     * @return CacheManager
+     * @return CacheResolver
      */
-    @Override
-    @Bean
-    public CacheManager cacheManager() {
-        return new RedissonSpringCacheManager(redissonClient, readCacheConfigMap());
-    }
-
     @Override
     @Bean(ExpireKeyRedissonCacheResolver.EXPIRE_KEY_REDISSON_CACHE_RESOLVER_BEAN_NAME)
     public CacheResolver cacheResolver() {
-        return new ExpireKeyRedissonCacheResolver(cacheManager(), redissonClient, readCacheConfigMap());
+        return cacheResolver;
     }
 
     @Bean

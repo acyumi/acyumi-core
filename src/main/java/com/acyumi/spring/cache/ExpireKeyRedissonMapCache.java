@@ -2,7 +2,6 @@ package com.acyumi.spring.cache;
 
 import org.redisson.api.RMapCache;
 import org.redisson.spring.cache.CacheConfig;
-import org.redisson.spring.cache.NullValue;
 import org.redisson.spring.cache.RedissonCache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.ReflectionUtils;
@@ -20,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @see org.springframework.cache.Cache
  * @see RedissonCache
  */
-public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCache {
+public class ExpireKeyRedissonMapCache extends RedissonCache implements ExpireKeyCache {
 
     protected final RMapCache<Object, Object> mapCache;
     protected final CacheConfig config;
@@ -29,7 +28,7 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
     protected final AtomicLong puts;
     protected final AtomicLong misses;
 
-    public ExpireKeyRedissonCache(RMapCache<Object, Object> mapCache, CacheConfig config, boolean allowNullValues) {
+    public ExpireKeyRedissonMapCache(RMapCache<Object, Object> mapCache, CacheConfig config, boolean allowNullValues) {
         super(mapCache, config, allowNullValues);
         this.mapCache = mapCache;
         this.config = config;
@@ -62,25 +61,25 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
 
     @Override
     public ValueWrapper get(Object key) {
-        key = unWrapKey(key);
+        key = unwrapKey(key);
         return super.get(key);
     }
 
     @Override
     public <T> T get(Object key, Class<T> type) {
-        key = unWrapKey(key);
+        key = unwrapKey(key);
         return super.get(key, type);
     }
 
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
-        key = unWrapKey(key);
+        key = unwrapKey(key);
         return super.get(key, valueLoader);
     }
 
     @Override
     public void put(Object key, Object value) {
-        Object unWrappedKey = unWrapKey(key);
+        Object unWrappedKey = unwrapKey(key);
         if (key instanceof ExpireKeyCacheKeyWrapper) {
             ExpireKeyCacheKeyWrapper expireKeyCacheKeyWrapper = (ExpireKeyCacheKeyWrapper) key;
             ExpireKeyCacheOperation expireKeyCacheOperation = getExpireKeyCacheOperation(expireKeyCacheKeyWrapper);
@@ -103,7 +102,7 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
 
     @Override
     public ValueWrapper putIfAbsent(Object key, Object value) {
-        Object unWrappedKey = unWrapKey(key);
+        Object unWrappedKey = unwrapKey(key);
         if (key instanceof ExpireKeyCacheKeyWrapper) {
             ExpireKeyCacheKeyWrapper expireKeyCacheKeyWrapper = (ExpireKeyCacheKeyWrapper) key;
             ExpireKeyCacheOperation expireKeyCacheOperation = getExpireKeyCacheOperation(expireKeyCacheKeyWrapper);
@@ -128,12 +127,12 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
 
     @Override
     public void evict(Object key) {
-        key = unWrapKey(key);
+        key = unwrapKey(key);
         super.evict(key);
     }
 
     @Override
-    public Object unWrapKey(Object key) {
+    public Object unwrapKey(Object key) {
         if (key instanceof ExpireKeyCacheKeyWrapper) {
             return ((ExpireKeyCacheKeyWrapper) key).getKey();
         }
@@ -143,16 +142,6 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
     @Override
     public ExpireKeyCacheOperation getExpireKeyCacheOperation(ExpireKeyCacheKeyWrapper ekckWrapper) {
         return ekckWrapper.getExpireKeyCacheOperation();
-    }
-
-    protected ValueWrapper toValueWrapper(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value.getClass().getName().equals(NullValue.class.getName())) {
-            return NullValue.INSTANCE;
-        }
-        return new SimpleValueWrapper(value);
     }
 
     /**
@@ -175,6 +164,16 @@ public class ExpireKeyRedissonCache extends RedissonCache implements ExpireKeyCa
 
     public long getCachePuts() {
         return puts.get();
+    }
+
+    protected ValueWrapper toValueWrapper(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof org.redisson.spring.cache.NullValue) {
+            return org.redisson.spring.cache.NullValue.INSTANCE;
+        }
+        return new SimpleValueWrapper(value);
     }
 
 }

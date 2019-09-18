@@ -17,7 +17,7 @@ public interface ExpireKeyCache extends Cache {
      * @return 原来的key
      * @see ExpireKeyCacheKeyWrapper
      */
-    Object unWrapKey(Object key);
+    Object unwrapKey(Object key);
 
     /**
      * key如果经过了{@link ExpireKeyCacheKeyWrapper}包装，

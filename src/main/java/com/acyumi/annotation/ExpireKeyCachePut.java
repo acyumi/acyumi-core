@@ -99,6 +99,23 @@ public @interface ExpireKeyCachePut {
     TimeUnit expireTimeUnit() default TimeUnit.SECONDS;
 
     /**
+     * 是否使用redis的hash结构作为Cache，默认为false <br>
+     * 设置为true时， <br>
+     * {@link #value()} 或 {@link #cacheNames()} 指定的就是hash的key <br>
+     * {@link #key()} 或 {@link #keyGenerator()} 指定的就是hash的field <br>
+     * 然后hash的field的过期由redisson客户端来维护 <br>
+     * <br>
+     * 设置为false时， <br>
+     * {@link #value()} 或 {@link #cacheNames()} 指定的就是string的key的前缀部分 <br>
+     * {@link #key()} 或 {@link #keyGenerator()} 指定的就是string的key的后缀部分 <br>
+     * 完整的string的key就是 "SpringCache的cacheName + SpringCache的key" <br>
+     * 然后string的key的过期由redis服务来维护 <br>
+     *
+     * @return TimeUnit
+     */
+    boolean usingHash() default false;
+
+    /**
      * Spring Expression Language (SpEL) expression used for making the cache
      * put operation conditional.
      * <p>Default is {@code ""}, meaning the method result is always cached.

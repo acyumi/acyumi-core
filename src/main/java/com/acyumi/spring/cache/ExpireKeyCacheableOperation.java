@@ -16,6 +16,8 @@ public class ExpireKeyCacheableOperation extends CacheableOperation implements E
 
     private final TimeUnit expireTimeUnit;
 
+    private final boolean usingHash;
+
     /**
      * Create a new {@link CacheableOperation} instance from the given builder.
      *
@@ -25,6 +27,7 @@ public class ExpireKeyCacheableOperation extends CacheableOperation implements E
         super(b);
         this.expire = b.expire;
         this.expireTimeUnit = b.expireTimeUnit == null ? TimeUnit.SECONDS : b.expireTimeUnit;
+        this.usingHash = b.usingHash;
     }
 
     @Override
@@ -37,11 +40,18 @@ public class ExpireKeyCacheableOperation extends CacheableOperation implements E
         return expireTimeUnit;
     }
 
+    @Override
+    public boolean isUsingHash() {
+        return usingHash;
+    }
+
     public static class Builder extends CacheableOperation.Builder {
 
         private long expire;
 
         private TimeUnit expireTimeUnit;
+
+        private boolean usingHash;
 
         public void setExpire(long expire) {
             this.expire = expire;
@@ -49,6 +59,10 @@ public class ExpireKeyCacheableOperation extends CacheableOperation implements E
 
         public void setExpireTimeUnit(TimeUnit expireTimeUnit) {
             this.expireTimeUnit = expireTimeUnit;
+        }
+
+        public void setUsingHash(boolean usingHash) {
+            this.usingHash = usingHash;
         }
 
         @Override
@@ -59,6 +73,9 @@ public class ExpireKeyCacheableOperation extends CacheableOperation implements E
             sb.append("'");
             sb.append(" | expireTimeUnit='");
             sb.append(this.expireTimeUnit);
+            sb.append("'");
+            sb.append(" | usingHash='");
+            sb.append(this.usingHash);
             sb.append("'");
             return sb;
         }

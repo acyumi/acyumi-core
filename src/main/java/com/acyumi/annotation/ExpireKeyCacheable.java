@@ -1,6 +1,7 @@
 package com.acyumi.annotation;
 
 import com.acyumi.spring.cache.ExpireKeyRedissonCacheResolver;
+import com.acyumi.spring.cache.ExpireKeyRedissonMapCache;
 import com.acyumi.spring.cache.ExpireKeySpringCacheConfig;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -110,6 +111,23 @@ public @interface ExpireKeyCacheable {
     //TimeUnit maxIdleTimeUnit() default TimeUnit.SECONDS;
 
     /**
+     * 是否使用redis的hash结构作为Cache，默认为false <br>
+     * 设置为true时， <br>
+     * {@link #value()} 或 {@link #cacheNames()} 指定的就是hash的key <br>
+     * {@link #key()} 或 {@link #keyGenerator()} 指定的就是hash的field <br>
+     * 然后hash的field的过期由redisson客户端来维护 <br>
+     * <br>
+     * 设置为false时， <br>
+     * {@link #value()} 或 {@link #cacheNames()} 指定的就是string的key的前缀部分 <br>
+     * {@link #key()} 或 {@link #keyGenerator()} 指定的就是string的key的后缀部分 <br>
+     * 完整的string的key就是 "SpringCache的cacheName + SpringCache的key" <br>
+     * 然后string的key的过期由redis服务来维护 <br>
+     *
+     * @return TimeUnit
+     */
+    boolean usingHash() default false;
+
+    /**
      * Spring Expression Language (SpEL) expression used for making the method
      * caching conditional.
      * <p>Default is {@code ""}, meaning the method result is always cached.
@@ -172,7 +190,7 @@ public @interface ExpireKeyCacheable {
      *
      * @return boolean
      * @see org.springframework.cache.Cache#get(Object, java.util.concurrent.Callable)
-     * @see com.acyumi.spring.cache.ExpireKeyRedissonCache#get(Object, java.util.concurrent.Callable)
+     * @see ExpireKeyRedissonMapCache#get(Object, java.util.concurrent.Callable)
      */
     @AliasFor(annotation = Cacheable.class)
     boolean sync() default false;

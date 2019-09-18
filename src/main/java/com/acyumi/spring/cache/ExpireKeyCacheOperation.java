@@ -25,4 +25,11 @@ public interface ExpireKeyCacheOperation extends BasicOperation {
      * @return TimeUnit
      */
     TimeUnit getExpireTimeUnit();
+
+    /**
+     * 是否使用redis的hash结构作为Cache
+     *
+     * @return boolean
+     */
+    boolean isUsingHash();
 }
