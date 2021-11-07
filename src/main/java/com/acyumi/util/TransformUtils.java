@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * 标准POJO对象/Map&lt;String,Object&gt;之间的转化工具类. <br>
@@ -55,6 +56,12 @@ public abstract class TransformUtils {
         return target;
     }
 
+    public static <T> T transform(Object source, Supplier<T> targetSupplier) {
+        T target = targetSupplier.get();
+        transformSpecify(source, target, false, (String[]) null);
+        return target;
+    }
+
     public static void transform(Object source, Object pojo) {
         transformSpecify(source, pojo, false, (String[]) null);
     }
@@ -78,6 +85,13 @@ public abstract class TransformUtils {
         return target;
     }
 
+    public static <T> T transformPart(Object source, Supplier<T> targetSupplier, boolean onlyNotNull,
+                                      String... keysOrFieldNames) {
+        T target = targetSupplier.get();
+        transformSpecify(source, target, onlyNotNull, keysOrFieldNames);
+        return target;
+    }
+
     public static void transformPart(Object source, Object pojo, boolean onlyNotNull, String... keysOrFieldNames) {
         transformSpecify(source, pojo, onlyNotNull, keysOrFieldNames);
     }
@@ -96,11 +110,17 @@ public abstract class TransformUtils {
      */
     public static <K, V> Map<K, V> transformToMap(Object source, Class<?> mapClass,
                                                   Class<K> keyClass, Class<V> valueClass) {
-        return transformToMapSpecify(source, mapClass, keyClass, valueClass, false, (Object[]) null);
+        Map<K, V> targetMap = initTargetMap(mapClass, keyClass, valueClass);
+        return transformToMapSpecify(source, targetMap, keyClass, valueClass, false, (Object[]) null);
+    }
+
+    public static <K, V> Map<K, V> transformToMap(Object source, Supplier<Map<K, V>> mapSupplier,
+                                                  Class<K> keyClass, Class<V> valueClass) {
+        return transformToMapSpecify(source, mapSupplier.get(), keyClass, valueClass, false, (Object[]) null);
     }
 
     public static TransMap transformToTransMap(Object source) {
-        return (TransMap) transformToMapSpecify(source, TransMap.class,
+        return (TransMap) transformToMapSpecify(source, new TransMap(),
                 String.class, Object.class, false, (Object[]) null);
     }
 
@@ -131,11 +151,18 @@ public abstract class TransformUtils {
     public static <K, V> Map<K, V> transformPartToMap(Object source, Class<?> mapClass,
                                                       Class<K> keyClass, Class<V> valueClass,
                                                       boolean onlyNotNull, String... fieldNames) {
-        return transformToMapSpecify(source, mapClass, keyClass, valueClass, onlyNotNull, (Object[]) fieldNames);
+        Map<K, V> targetMap = initTargetMap(mapClass, keyClass, valueClass);
+        return transformToMapSpecify(source, targetMap, keyClass, valueClass, onlyNotNull, (Object[]) fieldNames);
+    }
+
+    public static <K, V> Map<K, V> transformPartToMap(Object source, Supplier<Map<K, V>> mapSupplier,
+                                                      Class<K> keyClass, Class<V> valueClass,
+                                                      boolean onlyNotNull, String... fieldNames) {
+        return transformToMapSpecify(source, mapSupplier.get(), keyClass, valueClass, onlyNotNull, (Object[]) fieldNames);
     }
 
     public static TransMap transformPartToTransMap(Object source, boolean onlyNotNull, String... fieldNames) {
-        return (TransMap) transformToMapSpecify(source, TransMap.class, String.class, Object.class,
+        return (TransMap) transformToMapSpecify(source, new TransMap(), String.class, Object.class,
                 onlyNotNull, (Object[]) fieldNames);
     }
 
@@ -155,38 +182,30 @@ public abstract class TransformUtils {
      *
      * @param sourceList    源List集合(元素类型(POJO或Map))
      * @param listElemClass 目标List集合中的元素Class
-     * @param <T>           目标List集合中的元素类型(POJO或Map或TransMap)
+     * @param <E>           目标List集合中的元素类型(POJO或Map或TransMap)
      * @param onlyNotNull   是否只传递非空的值
      * @return List&lt;T&gt; 目标List集合
      */
     @SuppressWarnings("unchecked")
-    public static <T> List<T> transformList(List<?> sourceList, Class<T> listElemClass, boolean onlyNotNull) {
-        List<T> targetList = new ArrayList<>();
+    public static <E> List<E> transformList(List<?> sourceList, Class<E> listElemClass, boolean onlyNotNull) {
+        List<E> targetList = new ArrayList<>();
         if (ParameterUtils.isEmpty(sourceList)) {
             return targetList;
         }
         if (Map.class.isAssignableFrom(listElemClass)) {
             ParameterUtils.iterateObj(sourceList, (source, index) -> {
-                targetList.add((T) transformToMapSpecify(source, listElemClass,
+                Map<String, Object> targetMap = initTargetMap(listElemClass, String.class, Object.class);
+                targetList.add((E) transformToMapSpecify(source, targetMap,
                         String.class, Object.class, onlyNotNull, (Object[]) null));
             });
         } else {
             ParameterUtils.iterateObj(sourceList, (source, index) -> {
-                T target = Reflector.newTarget(listElemClass);
+                E target = Reflector.newTarget(listElemClass);
                 transformSpecify(source, target, onlyNotNull, (String[]) null);
                 targetList.add(target);
             });
         }
         return targetList;
-        //return sourceList.stream().map(source -> {
-        //    if (Map.class.isAssignableFrom(listElemClass)) {
-        //        return (T) transformToMapSpecify(source, listElemClass,
-        //                String.class, Object.class, onlyNotNull, (Object[]) null);
-        //    }
-        //    T target = Reflector.newTarget(listElemClass);
-        //    transformSpecify(source, target, onlyNotNull, (String[]) null);
-        //    return target;
-        //}).collect(Collectors.toList());
     }
 
     //----------------------------------------------------------------------------------------------------
@@ -201,13 +220,12 @@ public abstract class TransformUtils {
         }
     }
 
-    private static <K, V> Map<K, V> transformToMapSpecify(Object source, Class<?> mapClass,
+    private static <K, V> Map<K, V> transformToMapSpecify(Object source, Map<K, V> targetMap,
                                                           Class<K> keyClass, Class<V> valueClass,
                                                           boolean onlyNotNull, Object... keysOrFieldNames) {
         if (source == null) {
             return null;
         }
-        Map<K, V> targetMap = initTargetMap(mapClass, keyClass, valueClass);
         if (source instanceof Map) {
             transformMapToMap((Map<?, ?>) source, targetMap, keyClass, valueClass, onlyNotNull, keysOrFieldNames);
         } else {
