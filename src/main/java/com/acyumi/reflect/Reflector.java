@@ -2,8 +2,8 @@ package com.acyumi.reflect;
 
 import com.acyumi.reflect.reflectasm.MethodAccessor;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.util.ClassUtils;
@@ -13,7 +13,6 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,16 +38,14 @@ public abstract class Reflector {
      * 储存pojo源对象和目标对象的getter和setter方法
      */
     //private static final Map<Class<?>, MethodAccessor> METHOD_ACCESSOR_CACHE = new ConcurrentHashMap<>();
-    private static final Cache<Class<?>, MethodAccessor> METHOD_ACCESSOR_CACHE = CacheBuilder.newBuilder()
+    private static final Cache<Class<?>, MethodAccessor> METHOD_ACCESSOR_CACHE = Caffeine.newBuilder()
             //设置cache的初始大小为64，要合理设置该值
             .initialCapacity(64)
             //设置cache的最大缓存个数为256
             .maximumSize(256)
-            //设置并发数为5，即同一时间最多只能有10个线程往cache执行写入操作
-            .concurrencyLevel(10)
             //缓存项在创建后，在给定时间内没有被读/写访问，则清除
             .expireAfterAccess(30, TimeUnit.MINUTES)
-            //构建guava的纯java内存cache实例
+            //构建Caffeine的纯java内存cache实例
             .build();
 
     /**
@@ -154,7 +151,7 @@ public abstract class Reflector {
      * @see #makeParamType(Class, Type...)
      * <div style='display: none'>@see org.apache.ibatis.type.TypeReference</div>
      */
-    public static Type getType(TypeReference typeReference) {
+    public static Type getType(TypeReference<?> typeReference) {
         return typeReference.getType();
     }
 
@@ -401,11 +398,7 @@ public abstract class Reflector {
      */
     public static MethodAccessor getMethodAccessor(Class<?> clazz) {
         //return METHOD_ACCESSOR_MAP.computeIfAbsent(clazz, MethodAccessor::new);
-        try {
-            return METHOD_ACCESSOR_CACHE.get(clazz, () -> MethodAccessor.get(clazz));
-        } catch (ExecutionException e) {
-            throw new RuntimeException("创建MethodAccessor失败", e);
-        }
+        return METHOD_ACCESSOR_CACHE.get(clazz, c -> MethodAccessor.get(clazz));
     }
 
     /**
@@ -538,7 +531,7 @@ public abstract class Reflector {
             StringBuilder sb = new StringBuilder();
             if (ownerType != null) {
                 if (ownerType instanceof Class) {
-                    sb.append(((Class) ownerType).getName());
+                    sb.append(((Class<?>) ownerType).getName());
                 } else {
                     sb.append(ownerType.toString());
                 }

@@ -89,11 +89,11 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>20.0</version>
-            <scope>provided</scope>
-            <optional>true</optional>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.0.4</version>
+<!--            <scope>provided</scope>-->
+<!--            <optional>true</optional>-->
         </dependency>
 
         <dependency>
