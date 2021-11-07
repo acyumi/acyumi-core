@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -148,6 +150,23 @@ public abstract class ParameterUtils {
     }
 
     /**
+     * 检验对象是否不为空. <br>
+     * 将方法将做以下判断： <br>
+     * 1、是否为null <br>
+     * 2、Collection和Map的size是否为0 <br>
+     * 3、数组和字符序列的length是否为0 <br>
+     * 4、字符序列是否空白 <br>
+     * 5、其他可遍历对象的元素数量是否为0
+     *
+     * @param obj 待检验的对象，可以是Collection/Map/CharSequence/数组/Iterable
+     * @param <O> 待检验的对象类型
+     * @return boolean
+     */
+    public static <O> boolean isNotEmpty(O obj) {
+        return !isEmpty(obj);
+    }
+
+    /**
      * 检验对象是否为空. <br>
      * 将方法将做以下判断： <br>
      * 1、是否为null <br>
@@ -164,16 +183,16 @@ public abstract class ParameterUtils {
         if (obj == null) {
             return true;
         } else if (obj instanceof Collection) {
-            return ((Collection) obj).isEmpty();
+            return ((Collection<?>) obj).isEmpty();
         } else if (obj instanceof Map) {
-            return ((Map) obj).isEmpty();
+            return ((Map<?, ?>) obj).isEmpty();
         } else if (obj instanceof CharSequence) {
             return isEmpty((CharSequence) obj);
         } else if (obj instanceof Object[]) {
             return Array.getLength(obj) == 0;
         } else if (obj instanceof Iterable) {
             //非Collection的Iterable放最后
-            return !((Iterable) obj).iterator().hasNext();
+            return !((Iterable<?>) obj).iterator().hasNext();
         }
         return false;
     }
@@ -226,15 +245,10 @@ public abstract class ParameterUtils {
         if (length == 0) {
             return true;
         }
-        boolean hasText = false;
         for (int i = 0; i < length; i++) {
             if (!Character.isWhitespace(charSequence.charAt(i))) {
-                hasText = true;
-                break;
+                return false;
             }
-        }
-        if (hasText) {
-            return false;
         }
         return true;
     }
@@ -486,6 +500,34 @@ public abstract class ParameterUtils {
     }
 
     /**
+     * 将可迭代的对象转成Stream，不会返回null
+     *
+     * @param iterable 可迭代的对象
+     * @param <E>      元素泛型
+     * @return Stream
+     */
+    public static <E> Stream<E> stream(Iterable<E> iterable) {
+        if (isEmpty(iterable)) {
+            return Stream.empty();
+        }
+        return StreamSupport.stream(iterable.spliterator(), false);
+    }
+
+    /**
+     * 将数组转成Stream，不会返回null
+     *
+     * @param es  数组
+     * @param <E> 元素泛型
+     * @return Stream
+     */
+    public static <E> Stream<E> stream(E[] es) {
+        if (isEmpty(es)) {
+            return Stream.empty();
+        }
+        return Arrays.stream(es);
+    }
+
+    /**
      * 判断两集合是否有交集. <br>
      * 此方法会判断source是否Set集合，如果不是，则将source的数据复制到HashSet中再进行交集判断
      *
@@ -499,9 +541,9 @@ public abstract class ParameterUtils {
             return false;
         }
 
-        Collection srcCollection;
+        Collection<Object> srcCollection;
         if (source instanceof Set) {
-            srcCollection = (Set) source;
+            srcCollection = (Set<Object>) source;
         } else {
             srcCollection = new HashSet<>();
             iterateObj(source, (BiConsumer<Object, Integer>) (obj, i) -> srcCollection.add(obj));
@@ -524,14 +566,14 @@ public abstract class ParameterUtils {
     public static int getElementSize(Object obj) {
         int size = 0;
         if (obj instanceof Collection) {
-            size = ((Collection) obj).size();
+            size = ((Collection<?>) obj).size();
         } else if (obj instanceof Object[]) {
             size = ((Object[]) obj).length;
         } else if (obj instanceof Map) {
-            size = ((Map) obj).size();
+            size = ((Map<?, ?>) obj).size();
         } else if (obj instanceof Iterable) {
             //非Collection的Iterable放最后
-            for (Object ignored : ((Iterable) obj)) {
+            for (Object ignored : ((Iterable<?>) obj)) {
                 size++;
             }
         }
@@ -967,6 +1009,43 @@ public abstract class ParameterUtils {
      */
     public static byte[] decodeFromBase64Str(String src) {
         return Base64.getDecoder().decode(src.getBytes(DEFAULT_CHARSET));
+    }
+
+    /**
+     * 将字节数组转成Mime Base64编码的字符串.
+     * <p>
+     * 即使用RFC2045规范的Base64编码，<br>
+     * 目前国内很多开放平台使用的Base64代码是用的org.apache.commons.codec.binary套件下的Base64类，<br>
+     * 而它正是使用的RFC2045规范，<br>
+     * 所以如果使用JDK默认的{@link Base64#getEncoder()}与这些开放平台做对接，是有可能有问题的，<br>
+     * 因此增加此方法
+     *
+     *
+     * @param bytes 字节数组
+     * @return Base64编码的字符串
+     */
+    public static String encodeToMimeBase64Str(byte[] bytes) {
+        if (bytes.length == 0) {
+            return "";
+        } else {
+            return new String(Base64.getMimeEncoder().encode(bytes), DEFAULT_CHARSET);
+        }
+    }
+
+    /**
+     * 将Mime Base64编码的字符串解码成字节数组.
+     * <p>
+     * 即使用RFC2045规范的Base64编码，<br>
+     * 目前国内很多开放平台使用的Base64代码是用的org.apache.commons.codec.binary套件下的Base64类，<br>
+     * 而它正是使用的RFC2045规范，<br>
+     * 所以如果使用JDK默认的{@link Base64#getDecoder()}与这些开放平台做对接，是有可能有问题的，<br>
+     * 因此增加此方法
+     *
+     * @param src Base64编码的字符串
+     * @return 字节数组
+     */
+    public static byte[] decodeFromMimeBase64Str(String src) {
+        return Base64.getMimeDecoder().decode(src.getBytes(DEFAULT_CHARSET));
     }
 
     /**
