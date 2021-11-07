@@ -1,7 +1,6 @@
 package com.acyumi.reflect.reflectasm;
 
 import com.acyumi.reflect.Reflector;
-import com.acyumi.util.JsonUtils;
 import com.acyumi.util.ParameterUtils;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Label;
@@ -935,6 +934,6 @@ public abstract class MethodAccessor {
 
     @Override
     public String toString() {
-        return JsonUtils.toJsonStr(this);
+        return "This is a class generate by " + MethodAccessor.class.getName() + ": " + this.getClass().getName();
     }
 }
